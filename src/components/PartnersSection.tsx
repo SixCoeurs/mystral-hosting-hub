@@ -16,6 +16,9 @@ const partners = [
 ];
 
 export const PartnersSection = () => {
+  // Match the section's gradient background color for seamless fade
+  const fadeColor = "hsl(270 50% 8%)"; // Dark purple matching primary/10 on dark bg
+  
   return (
     <section className="py-12 relative overflow-hidden bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5 border-y border-primary/20">
       <div className="container mx-auto px-4 mb-8">
@@ -31,9 +34,15 @@ export const PartnersSection = () => {
 
       {/* Marquee container */}
       <div className="relative">
-        {/* Fade edges - using primary/5 colors to blend with section background */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent z-10" style={{ background: 'linear-gradient(to right, hsl(var(--background)), transparent)' }} />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-primary/10 via-primary/5 to-transparent z-10" style={{ background: 'linear-gradient(to left, hsl(var(--background)), transparent)' }} />
+        {/* Fade edges - matching section gradient background */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-40 z-10 pointer-events-none" 
+          style={{ background: `linear-gradient(to right, ${fadeColor}, transparent)` }} 
+        />
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-40 z-10 pointer-events-none" 
+          style={{ background: `linear-gradient(to left, ${fadeColor}, transparent)` }} 
+        />
         
         {/* Scrolling partners - seamless infinite loop */}
         <div className="flex overflow-hidden">
