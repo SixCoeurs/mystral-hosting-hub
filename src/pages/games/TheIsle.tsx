@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import theisleImg from "@/assets/games/theisle.jpg";
+import theisleHero from "@/assets/games/heroes/theisle-hero.jpg";
 
 const plans = [
   { name: "Pack", slots: "50", ram: "8 GB", cpu: "4 vCores", storage: "30 GB", price: "7,99€" },
@@ -12,7 +12,7 @@ const TheIslePage = () => {
     <GamePageTemplate
       name="The Isle"
       description="Incarnez des dinosaures sur votre serveur dédié. Legacy et Evrima supportés, configurations de spawn personnalisables."
-      heroImage={theisleImg}
+      heroImage={theisleHero}
       accentColor="#2D5016"
       features={["Legacy & Evrima", "Rules custom", "Spawns configs", "Whitelist"]}
       plans={plans}

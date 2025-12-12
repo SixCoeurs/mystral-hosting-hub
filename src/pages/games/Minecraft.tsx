@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import minecraftImg from "@/assets/games/minecraft.jpg";
+import minecraftHero from "@/assets/games/heroes/minecraft-hero.jpg";
 
 const plans = [
   { name: "Vanilla", slots: "10", ram: "2 GB", cpu: "2 vCores", storage: "10 GB", price: "2,99€" },
@@ -12,7 +12,7 @@ const MinecraftPage = () => {
     <GamePageTemplate
       name="Minecraft"
       description="Hébergez votre serveur Minecraft avec des performances optimales. Vanilla, Spigot, Paper, Forge, Fabric - tous les modloaders supportés."
-      heroImage={minecraftImg}
+      heroImage={minecraftHero}
       accentColor="#5D8C3E"
       features={["Tous Modloaders", "Plugins illimités", "Backups auto", "Panel Pterodactyl"]}
       plans={plans}

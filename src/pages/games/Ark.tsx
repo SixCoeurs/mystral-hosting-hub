@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import arkImg from "@/assets/games/ark.jpg";
+import arkHero from "@/assets/games/heroes/ark-hero.jpg";
 
 const plans = [
   { name: "Solo/Duo", slots: "10", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "12,99€" },
@@ -12,7 +12,7 @@ const ArkPage = () => {
     <GamePageTemplate
       name="ARK: Survival Evolved"
       description="Domptez des dinosaures sur votre propre serveur ARK. Support complet des mods Steam Workshop et clusters multi-maps."
-      heroImage={arkImg}
+      heroImage={arkHero}
       accentColor="#FF6B00"
       features={["Mods Workshop", "Clusters", "ARK: SA Ready", "Configs avancées"]}
       plans={plans}

@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import palworldImg from "@/assets/games/palworld.jpg";
+import palworldHero from "@/assets/games/heroes/palworld-hero.jpg";
 
 const plans = [
   { name: "Coop", slots: "4", ram: "8 GB", cpu: "4 vCores", storage: "30 GB", price: "9,99€" },
@@ -12,7 +12,7 @@ const PalworldPage = () => {
     <GamePageTemplate
       name="Palworld"
       description="Hébergez votre aventure Palworld avec vos amis. Serveurs optimisés pour des performances stables et un gameplay fluide."
-      heroImage={palworldImg}
+      heroImage={palworldHero}
       accentColor="#4ECDC4"
       features={["Mises à jour auto", "Saves cloud", "Configs custom", "Mods supportés"]}
       plans={plans}
