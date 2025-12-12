@@ -45,12 +45,12 @@ export const PartnersSection = () => {
             {[...partners, ...partners, ...partners, ...partners].map((partner, index) => (
               <div
                 key={`${partner.name}-${index}`}
-                className="flex items-center whitespace-nowrap group"
+                className="flex items-center whitespace-nowrap group px-8"
               >
                 <img 
                   src={partner.logo} 
                   alt={`${partner.name} logo`}
-                  className="h-10 w-auto object-contain opacity-60 group-hover:opacity-100 transition-opacity duration-300 brightness-0 invert"
+                  className="h-16 md:h-20 w-auto object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-300 brightness-0 invert"
                 />
               </div>
             ))}
