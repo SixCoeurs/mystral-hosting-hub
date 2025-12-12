@@ -5,14 +5,18 @@ import mikrotikLogo from "@/assets/partners/mikrotik.svg";
 import skhynixLogo from "@/assets/partners/skhynix.svg";
 import infomaniakLogo from "@/assets/partners/infomaniak.png";
 import ciscoLogo from "@/assets/partners/cisco.png";
+import amdLogo from "@/assets/partners/amd.png";
+import pletxLogo from "@/assets/partners/pletx.png";
 
 const partners = [
   { name: "Dell", logo: dellLogo },
   { name: "Intel", logo: intelLogo },
+  { name: "AMD", logo: amdLogo },
   { name: "Cisco", logo: ciscoLogo },
   { name: "MikroTik", logo: mikrotikLogo },
   { name: "Infomaniak", logo: infomaniakLogo },
   { name: "SK hynix", logo: skhynixLogo },
+  { name: "PletX", logo: pletxLogo },
 ];
 
 export const PartnersSection = () => {
