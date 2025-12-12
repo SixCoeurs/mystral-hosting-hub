@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
-import { Star, Zap, Shield, Headphones } from "lucide-react";
+import { Zap, Shield, Headphones } from "lucide-react";
 import { Button } from "./ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const stats = [
   { value: "15,000+", label: "Serveurs Actifs", icon: Zap },
-  { value: "500K+", label: "Joueurs En Ligne", icon: Star },
+  { value: "500K+", label: "Joueurs En Ligne", icon: Zap },
   { value: "99.9%", label: "Uptime", icon: Shield },
   { value: "24/7", label: "Support FR", icon: Headphones },
 ];
@@ -58,21 +58,15 @@ export const HeroSection = () => {
 
       <div className="container mx-auto px-4 relative z-10 pt-20">
         <div className="text-center max-w-5xl mx-auto">
-          {/* Trust Badge */}
+          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-3 glass px-6 py-3 rounded-full border border-primary/30 mb-8"
+            className="inline-flex items-center gap-2 glass px-6 py-3 rounded-full border border-primary/30 mb-8"
           >
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              ))}
-            </div>
-            <span className="text-sm text-muted-foreground">
-              <span className="text-foreground font-semibold">4.9/5</span> - 500+ avis vérifiés
-            </span>
+            <Zap className="w-4 h-4 text-primary" />
+            <span className="text-sm text-foreground font-medium">Hébergement Gaming Haute Performance</span>
           </motion.div>
 
           {/* Main Headline */}
