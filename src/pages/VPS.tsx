@@ -1,15 +1,15 @@
 import { motion } from "framer-motion";
-import { Star, Check, Shield, Zap, Clock, Server } from "lucide-react";
+import { Star, Shield, Zap, Clock, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { PricingSection } from "@/components/PricingComponents";
 import vpsHeroBg from "@/assets/vps-hero-bg.jpg";
 
 const features = [
   { icon: Zap, label: "NVMe Gen 4" },
   { icon: Shield, label: "Protection DDoS" },
-  { icon: Check, label: "99.9% Uptime" },
-  { icon: Clock, label: "Support 24/7" },
+  { icon: Clock, label: "99.9% Uptime" },
   { icon: Server, label: "Setup Instantané" },
 ];
 
@@ -94,69 +94,13 @@ const enterprisePlans = [
   },
 ];
 
-const PlanCard = ({ plan, index }: { plan: typeof starterPlans[0] & { popular?: boolean; bestValue?: boolean }; index: number }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, delay: index * 0.1 }}
-    className="relative group"
-  >
-    {plan.popular && (
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary rounded-full text-xs font-bold text-primary-foreground z-10">
-        POPULAIRE
-      </div>
-    )}
-    {plan.bestValue && (
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-accent rounded-full text-xs font-bold text-accent-foreground z-10">
-        MEILLEUR RAPPORT
-      </div>
-    )}
-    <div className={`h-full p-6 rounded-2xl border transition-all duration-500 ${
-      plan.popular || plan.bestValue 
-        ? "bg-card border-primary/50 shadow-glow" 
-        : "bg-card border-border/50 hover:border-primary/30"
-    }`}>
-      <div className="mb-4">
-        <h3 className="font-display text-xl font-bold text-foreground">{plan.name}</h3>
-        <p className="text-sm text-muted-foreground">{plan.description}</p>
-      </div>
-      
-      <div className="mb-6">
-        <span className="font-display text-3xl font-bold gradient-text">{plan.price}</span>
-        <span className="text-muted-foreground">/mois</span>
-      </div>
-
-      <ul className="space-y-3 mb-6">
-        {plan.features.map((feature) => (
-          <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Check className="w-4 h-4 text-primary" />
-            {feature}
-          </li>
-        ))}
-      </ul>
-
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-xs text-muted-foreground px-2 py-1 rounded bg-secondary">{plan.os}</span>
-      </div>
-
-      <Button 
-        variant={plan.popular || plan.bestValue ? "glow" : "outline"} 
-        className="w-full"
-      >
-        Commander
-      </Button>
-    </div>
-  </motion.div>
-);
-
 const VPSPage = () => {
   return (
     <main className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden pt-20">
+      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden pt-20">
         <div 
           className="absolute inset-0 z-0"
           style={{
@@ -165,17 +109,16 @@ const VPSPage = () => {
             backgroundPosition: "center",
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background" />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 py-20">
+        <div className="container mx-auto px-4 relative z-10 py-16">
           <div className="text-center max-w-4xl mx-auto">
-            {/* Trust Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-3 glass px-6 py-3 rounded-full border border-primary/30 mb-8"
+              className="inline-flex items-center gap-3 glass px-6 py-3 rounded-full border border-primary/30 mb-6"
             >
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -183,7 +126,7 @@ const VPSPage = () => {
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                <span className="text-foreground font-semibold">4.9/5</span> - 500+ avis vérifiés
+                <span className="text-foreground font-semibold">4.9/5</span> - 500+ avis
               </span>
             </motion.div>
 
@@ -201,23 +144,21 @@ const VPSPage = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8"
+              className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8"
             >
-              VPS haute performance pour un gaming parfait.{" "}
-              <span className="text-primary">Zéro lag</span>, {" "}
+              VPS haute performance. <span className="text-primary">Zéro lag</span>, {" "}
               <span className="text-accent">protection DDoS</span>, et{" "}
               <span className="text-primary">support français 24/7</span>.
             </motion.p>
 
-            {/* Features badges */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-wrap items-center justify-center gap-4 mb-10"
+              className="flex flex-wrap items-center justify-center gap-3 mb-8"
             >
               {features.map((feature) => (
-                <div key={feature.label} className="flex items-center gap-2 px-4 py-2 glass rounded-lg border border-border/50">
+                <div key={feature.label} className="flex items-center gap-2 px-4 py-2 glass rounded-full border border-border/50">
                   <feature.icon className="w-4 h-4 text-primary" />
                   <span className="text-sm text-foreground">{feature.label}</span>
                 </div>
@@ -230,7 +171,7 @@ const VPSPage = () => {
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               <Button variant="hero" size="xl">
-                Voir les offres VPS →
+                Voir les offres VPS ↓
               </Button>
             </motion.div>
           </div>
@@ -240,61 +181,26 @@ const VPSPage = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-24 relative">
         <div className="container mx-auto px-4">
-          {/* Starter Plans */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-16"
-          >
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-2">
-              <span className="text-foreground">Plans </span>
-              <span className="gradient-text">Starter</span>
-            </h2>
-            <p className="text-muted-foreground text-center mb-8">Parfait pour les tests, bots & petits projets</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {starterPlans.map((plan, index) => (
-                <PlanCard key={plan.name} plan={plan} index={index} />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Professional Plans */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-16"
-          >
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-2">
-              <span className="text-foreground">Plans </span>
-              <span className="gradient-text">Professional</span>
-            </h2>
-            <p className="text-muted-foreground text-center mb-8">Pour les entreprises & applications en croissance</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {professionalPlans.map((plan, index) => (
-                <PlanCard key={plan.name} plan={plan} index={index} />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Enterprise Plans */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-center mb-2">
-              <span className="text-foreground">Plans </span>
-              <span className="gradient-text">Enterprise</span>
-            </h2>
-            <p className="text-muted-foreground text-center mb-8">Puissance maximale pour applications exigeantes</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              {enterprisePlans.map((plan, index) => (
-                <PlanCard key={plan.name} plan={plan} index={index} />
-              ))}
-            </div>
-          </motion.div>
+          <PricingSection
+            title="Plans Starter"
+            subtitle="Parfait pour les tests, bots & petits projets"
+            plans={starterPlans}
+            columns={4}
+          />
+          
+          <PricingSection
+            title="Plans Professional"
+            subtitle="Pour les entreprises & applications en croissance"
+            plans={professionalPlans}
+            columns={4}
+          />
+          
+          <PricingSection
+            title="Plans Enterprise"
+            subtitle="Puissance maximale pour applications exigeantes"
+            plans={enterprisePlans}
+            columns={2}
+          />
         </div>
       </section>
 
