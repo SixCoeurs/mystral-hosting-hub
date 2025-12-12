@@ -8,6 +8,15 @@ import Index from "./pages/Index";
 import VPSPage from "./pages/VPS";
 import VDSPage from "./pages/VDS";
 import EnterprisePage from "./pages/Enterprise";
+import GamesPage from "./pages/Games";
+import MinecraftPage from "./pages/games/Minecraft";
+import RustPage from "./pages/games/Rust";
+import ArkPage from "./pages/games/Ark";
+import FiveMPage from "./pages/games/FiveM";
+import PalworldPage from "./pages/games/Palworld";
+import EnshroudedPage from "./pages/games/Enshrouded";
+import TheIslePage from "./pages/games/TheIsle";
+import DayZPage from "./pages/games/DayZ";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +32,15 @@ const App = () => (
           <Route path="/vps" element={<VPSPage />} />
           <Route path="/vds" element={<VDSPage />} />
           <Route path="/entreprise" element={<EnterprisePage />} />
+          <Route path="/games" element={<GamesPage />} />
+          <Route path="/games/minecraft" element={<MinecraftPage />} />
+          <Route path="/games/rust" element={<RustPage />} />
+          <Route path="/games/ark" element={<ArkPage />} />
+          <Route path="/games/fivem" element={<FiveMPage />} />
+          <Route path="/games/palworld" element={<PalworldPage />} />
+          <Route path="/games/enshrouded" element={<EnshroudedPage />} />
+          <Route path="/games/theisle" element={<TheIslePage />} />
+          <Route path="/games/dayz" element={<DayZPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
