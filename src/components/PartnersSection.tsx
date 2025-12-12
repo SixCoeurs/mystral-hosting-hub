@@ -50,11 +50,11 @@ export const PartnersSection = () => {
         
         {/* Scrolling partners - seamless infinite loop */}
         <div className="flex overflow-hidden">
-          <div className="flex gap-20 md:gap-32 items-center animate-marquee">
+          <div className="flex items-center animate-marquee">
             {[...partners, ...partners].map((partner, index) => (
               <div
                 key={`${partner.name}-${index}`}
-                className="flex items-center justify-center shrink-0 group"
+                className="flex items-center justify-center shrink-0 group px-10 md:px-16"
               >
                 <img 
                   src={partner.logo} 
@@ -64,11 +64,11 @@ export const PartnersSection = () => {
               </div>
             ))}
           </div>
-          <div className="flex gap-20 md:gap-32 items-center animate-marquee" aria-hidden="true">
+          <div className="flex items-center animate-marquee" aria-hidden="true">
             {[...partners, ...partners].map((partner, index) => (
               <div
                 key={`${partner.name}-duplicate-${index}`}
-                className="flex items-center justify-center shrink-0 group"
+                className="flex items-center justify-center shrink-0 group px-10 md:px-16"
               >
                 <img 
                   src={partner.logo} 
