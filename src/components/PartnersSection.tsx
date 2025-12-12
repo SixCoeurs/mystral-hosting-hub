@@ -54,7 +54,7 @@ export const PartnersSection = () => {
                 <img 
                   src={partner.logo} 
                   alt={`${partner.name} logo`}
-                  className="h-10 md:h-12 max-w-[120px] md:max-w-[150px] w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                  className="h-14 md:h-20 max-w-[160px] md:max-w-[200px] w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
                 />
               </div>
             ))}
