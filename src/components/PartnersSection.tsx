@@ -31,22 +31,14 @@ export const PartnersSection = () => {
 
       {/* Marquee container */}
       <div className="relative">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
+        {/* Fade edges - using primary/5 colors to blend with section background */}
+        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent z-10" style={{ background: 'linear-gradient(to right, hsl(var(--background)), transparent)' }} />
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-primary/10 via-primary/5 to-transparent z-10" style={{ background: 'linear-gradient(to left, hsl(var(--background)), transparent)' }} />
         
-        {/* Scrolling partners - right to left */}
+        {/* Scrolling partners - seamless infinite loop */}
         <div className="flex overflow-hidden">
-          <motion.div
-            className="flex gap-20 md:gap-32 items-center"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{
-              duration: 40,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            {[...partners, ...partners, ...partners, ...partners].map((partner, index) => (
+          <div className="flex gap-20 md:gap-32 items-center animate-marquee">
+            {[...partners, ...partners].map((partner, index) => (
               <div
                 key={`${partner.name}-${index}`}
                 className="flex items-center justify-center shrink-0 group"
@@ -58,7 +50,21 @@ export const PartnersSection = () => {
                 />
               </div>
             ))}
-          </motion.div>
+          </div>
+          <div className="flex gap-20 md:gap-32 items-center animate-marquee" aria-hidden="true">
+            {[...partners, ...partners].map((partner, index) => (
+              <div
+                key={`${partner.name}-duplicate-${index}`}
+                className="flex items-center justify-center shrink-0 group"
+              >
+                <img 
+                  src={partner.logo} 
+                  alt={`${partner.name} logo`}
+                  className="h-14 md:h-20 max-w-[160px] md:max-w-[200px] w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
