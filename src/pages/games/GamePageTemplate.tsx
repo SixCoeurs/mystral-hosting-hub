@@ -19,7 +19,8 @@ interface GamePlan {
 interface GamePageProps {
   name: string;
   description: string;
-  heroImage: string;
+  heroImage?: string;
+  heroVideo?: string;
   accentColor: string;
   features: string[];
   plans: GamePlan[];
@@ -29,6 +30,7 @@ export const GamePageTemplate = ({
   name,
   description,
   heroImage,
+  heroVideo,
   accentColor,
   features,
   plans,
@@ -49,14 +51,27 @@ export const GamePageTemplate = ({
       
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden pt-20">
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: `url(${heroImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
+        <div className="absolute inset-0 z-0">
+          {heroVideo ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src={heroVideo} type="video/mp4" />
+            </video>
+          ) : (
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url(${heroImage})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          )}
           <div 
             className="absolute inset-0"
             style={{
