@@ -146,7 +146,7 @@ export const GamePageTemplate = ({
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {plans.map((plan, index) => (
               <motion.div
                 key={plan.name}
@@ -154,45 +154,92 @@ export const GamePageTemplate = ({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className={`relative rounded-2xl border ${
+                className={`relative rounded-2xl border-2 ${
                   plan.popular 
-                    ? "border-primary bg-primary/5" 
-                    : "border-border/30 bg-card"
-                } p-6 hover:border-primary/50 transition-all duration-300`}
+                    ? "border-primary shadow-glow" 
+                    : "border-border/50 hover:border-primary/50"
+                } bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 overflow-hidden`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
-                    Populaire
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 px-6 py-1.5 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider rounded-b-lg">
+                    Most Popular
                   </div>
                 )}
 
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-3xl font-bold text-primary mb-6">
-                  {plan.price}<span className="text-sm text-muted-foreground">/mois</span>
-                </p>
+                {/* Header */}
+                <div className="p-8 pt-10 text-center border-b border-border/30">
+                  <h3 className="font-display text-2xl font-bold uppercase tracking-wide mb-2">{plan.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">Configuration optimisée</p>
+                  
+                  {/* Price */}
+                  <div className="mb-2">
+                    <span className="text-5xl font-display font-bold gradient-text">{plan.price}</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm">/mois</p>
+                </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-4 h-4 text-primary" />
-                    <span className="text-sm">{plan.slots} joueurs</span>
+                {/* Specs */}
+                <div className="p-8 space-y-4 border-b border-border/30">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
+                    <div className="flex items-center gap-3">
+                      <Cpu className="w-5 h-5 text-primary" />
+                      <span className="text-sm text-muted-foreground">CPU</span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground">{plan.cpu}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Gauge className="w-4 h-4 text-primary" />
-                    <span className="text-sm">{plan.ram} RAM</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
+                    <div className="flex items-center gap-3">
+                      <Gauge className="w-5 h-5 text-primary" />
+                      <span className="text-sm text-muted-foreground">RAM</span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground">{plan.ram}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Cpu className="w-4 h-4 text-primary" />
-                    <span className="text-sm">{plan.cpu}</span>
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
+                    <div className="flex items-center gap-3">
+                      <HardDrive className="w-5 h-5 text-primary" />
+                      <span className="text-sm text-muted-foreground">Storage</span>
+                    </div>
+                    <span className="text-sm font-bold text-foreground">{plan.storage} NVMe</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <HardDrive className="w-4 h-4 text-primary" />
-                    <span className="text-sm">{plan.storage} NVMe</span>
+                  
+                  {/* Unlimited Players Badge */}
+                  <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                    <span className="text-primary font-bold">∞</span>
+                    <span className="text-sm font-bold text-primary uppercase tracking-wide">{plan.slots} Joueurs</span>
                   </div>
                 </div>
 
-                <Button variant={plan.popular ? "glow" : "outline"} className="w-full">
-                  Commander
-                </Button>
+                {/* Features List */}
+                <div className="p-8 space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <Shield className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-muted-foreground">Protection DDoS incluse</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Zap className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-muted-foreground">Installation en 60 secondes</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Clock className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-muted-foreground">Support 24/7</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <Server className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-muted-foreground">Panel de contrôle complet</span>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <div className="p-8 pt-0">
+                  <Button 
+                    variant={plan.popular ? "glow" : "outline"} 
+                    size="lg"
+                    className="w-full gap-2 text-base font-bold uppercase tracking-wide"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Déployer le serveur
+                  </Button>
+                </div>
               </motion.div>
             ))}
           </div>

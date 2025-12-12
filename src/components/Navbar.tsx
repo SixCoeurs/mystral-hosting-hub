@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Server, ChevronDown, Phone, ChevronRight, Gamepad2 } from "lucide-react";
+import { Menu, X, Server, ChevronDown, Phone, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
 
@@ -116,16 +116,11 @@ export const Navbar = () => {
                               to={game.href}
                               className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-primary/10 transition-colors group"
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                                  <Gamepad2 className="w-4 h-4 text-primary" />
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                                    {game.label}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">À partir de {game.price}/mois</p>
-                                </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                                  {game.label}
+                                </p>
+                                <p className="text-xs text-muted-foreground">À partir de {game.price}/mois</p>
                               </div>
                               {game.popular && (
                                 <span className="text-[10px] font-medium bg-primary/20 text-primary px-2 py-0.5 rounded-full">
