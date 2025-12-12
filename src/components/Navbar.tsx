@@ -1,28 +1,18 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Server, ChevronDown, Phone } from "lucide-react";
+import { Menu, X, Server, ChevronDown, Phone, ChevronRight, Gamepad2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
 
-// Import game images
-import minecraftImg from "@/assets/games/minecraft.jpg";
-import rustImg from "@/assets/games/rust.jpg";
-import arkImg from "@/assets/games/ark.jpg";
-import fivemImg from "@/assets/games/fivem.jpg";
-import palworldImg from "@/assets/games/palworld.jpg";
-import enshroudedImg from "@/assets/games/enshrouded.jpg";
-import theisleImg from "@/assets/games/theisle.jpg";
-import dayzImg from "@/assets/games/dayz.jpg";
-
 const gameItems = [
-  { label: "Minecraft", href: "/games/minecraft", image: minecraftImg, price: "2,99€" },
-  { label: "Rust", href: "/games/rust", image: rustImg, price: "9,99€" },
-  { label: "ARK", href: "/games/ark", image: arkImg, price: "12,99€" },
-  { label: "FiveM", href: "/games/fivem", image: fivemImg, price: "14,99€" },
-  { label: "Palworld", href: "/games/palworld", image: palworldImg, price: "9,99€" },
-  { label: "Enshrouded", href: "/games/enshrouded", image: enshroudedImg, price: "9,99€" },
-  { label: "The Isle", href: "/games/theisle", image: theisleImg, price: "7,99€" },
-  { label: "DayZ", href: "/games/dayz", image: dayzImg, price: "9,99€" },
+  { label: "Minecraft", href: "/games/minecraft", price: "2,99€", popular: true },
+  { label: "Rust", href: "/games/rust", price: "9,99€", popular: true },
+  { label: "ARK", href: "/games/ark", price: "12,99€", popular: false },
+  { label: "FiveM", href: "/games/fivem", price: "14,99€", popular: true },
+  { label: "Palworld", href: "/games/palworld", price: "9,99€", popular: false },
+  { label: "Enshrouded", href: "/games/enshrouded", price: "9,99€", popular: false },
+  { label: "The Isle", href: "/games/theisle", price: "7,99€", popular: false },
+  { label: "DayZ", href: "/games/dayz", price: "9,99€", popular: false },
 ];
 
 const navLinks = [
@@ -113,36 +103,45 @@ export const Navbar = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 glass rounded-xl border border-border/50 overflow-hidden p-4"
-                        style={{ width: "600px" }}
+                        className="absolute top-full left-0 mt-3 bg-background/95 backdrop-blur-xl rounded-xl border border-border/50 overflow-hidden shadow-2xl shadow-primary/10"
+                        style={{ width: "280px" }}
                       >
-                        <div className="grid grid-cols-4 gap-3">
+                        <div className="p-2">
+                          <div className="px-3 py-2 mb-1">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Serveurs disponibles</p>
+                          </div>
                           {gameItems.map((game) => (
                             <Link
                               key={game.label}
                               to={game.href}
-                              className="group relative rounded-lg overflow-hidden aspect-[4/3] bg-background/50"
+                              className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-primary/10 transition-colors group"
                             >
-                              <img 
-                                src={game.image} 
-                                alt={game.label}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                              <div className="absolute bottom-0 left-0 right-0 p-2">
-                                <p className="text-xs font-medium text-foreground truncate">{game.label}</p>
-                                <p className="text-xs text-primary">{game.price}/mois</p>
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                                  <Gamepad2 className="w-4 h-4 text-primary" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                                    {game.label}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">À partir de {game.price}/mois</p>
+                                </div>
                               </div>
+                              {game.popular && (
+                                <span className="text-[10px] font-medium bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                                  Populaire
+                                </span>
+                              )}
                             </Link>
                           ))}
                         </div>
-                        <div className="mt-4 pt-3 border-t border-border/30">
+                        <div className="border-t border-border/30 p-2">
                           <Link 
                             to="/#games" 
-                            className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2"
+                            className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-primary/10 transition-colors text-sm text-muted-foreground hover:text-primary"
                           >
-                            Voir tous les jeux
-                            <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+                            <span>Voir tous les jeux</span>
+                            <ChevronRight className="w-4 h-4" />
                           </Link>
                         </div>
                       </motion.div>
