@@ -13,49 +13,42 @@ const partners = [
 
 export const PartnersSection = () => {
   return (
-    <section className="py-16 relative overflow-hidden border-y border-border/30">
-      <div className="container mx-auto px-4 mb-8">
+    <section className="py-12 relative overflow-hidden bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5 border-y border-primary/20">
+      <div className="container mx-auto px-4">
         <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-muted-foreground text-sm uppercase tracking-widest"
+          className="text-center text-muted-foreground text-sm uppercase tracking-widest mb-10"
         >
           Nos Partenaires
         </motion.p>
-      </div>
 
-      {/* Marquee container */}
-      <div className="relative">
-        {/* Fade edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
-        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
-        
-        {/* Scrolling partners */}
-        <div className="flex overflow-hidden">
-          <motion.div
-            className="flex gap-24 items-center"
-            animate={{ x: [0, "-50%"] }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            {[...partners, ...partners, ...partners, ...partners].map((partner, index) => (
-              <div
-                key={`${partner.name}-${index}`}
-                className="flex items-center whitespace-nowrap group px-8"
-              >
-                <img 
-                  src={partner.logo} 
-                  alt={`${partner.name} logo`}
-                  className="h-16 md:h-20 w-auto object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-300 brightness-0 invert"
-                />
-              </div>
-            ))}
-          </motion.div>
-        </div>
+        {/* Static logos grid */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex flex-wrap items-center justify-center gap-12 md:gap-20 lg:gap-28"
+        >
+          {partners.map((partner, index) => (
+            <motion.div
+              key={partner.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="flex items-center justify-center group"
+            >
+              <img 
+                src={partner.logo} 
+                alt={`${partner.name} logo`}
+                className="h-12 md:h-14 lg:h-16 w-auto object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+              />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
