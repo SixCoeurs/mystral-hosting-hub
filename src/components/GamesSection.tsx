@@ -1,68 +1,68 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { Button } from "./ui/button";
-import { 
-  MinecraftIcon, 
-  RustIcon, 
-  ArkIcon, 
-  FiveMIcon, 
-  PalworldIcon, 
-  EnshroudedIcon, 
-  TheIsleIcon, 
-  DayZIcon 
-} from "./icons/GameIcons";
+
+// Import game images
+import minecraftImg from "@/assets/games/minecraft.jpg";
+import rustImg from "@/assets/games/rust.jpg";
+import arkImg from "@/assets/games/ark.jpg";
+import fivemImg from "@/assets/games/fivem.jpg";
+import palworldImg from "@/assets/games/palworld.jpg";
+import enshroudedImg from "@/assets/games/enshrouded.jpg";
+import theisleImg from "@/assets/games/theisle.jpg";
+import dayzImg from "@/assets/games/dayz.jpg";
 
 const games = [
   {
     name: "Minecraft",
     price: "0,50€",
-    icon: MinecraftIcon,
-    color: "from-green-500/20 to-emerald-600/20",
+    image: minecraftImg,
+    color: "from-green-500/30 to-emerald-600/30",
     popular: true,
   },
   {
     name: "Rust",
     price: "7,40€",
-    icon: RustIcon,
-    color: "from-orange-500/20 to-red-600/20",
+    image: rustImg,
+    color: "from-orange-500/30 to-red-600/30",
     popular: true,
   },
   {
     name: "ARK: Survival",
     price: "7,60€",
-    icon: ArkIcon,
-    color: "from-blue-500/20 to-cyan-600/20",
+    image: arkImg,
+    color: "from-blue-500/30 to-cyan-600/30",
   },
   {
     name: "FiveM",
     price: "4,99€",
-    icon: FiveMIcon,
-    color: "from-orange-500/20 to-amber-600/20",
+    image: fivemImg,
+    color: "from-orange-500/30 to-amber-600/30",
   },
   {
     name: "Palworld",
     price: "6,00€",
-    icon: PalworldIcon,
-    color: "from-green-500/20 to-lime-600/20",
+    image: palworldImg,
+    color: "from-green-500/30 to-lime-600/30",
     popular: true,
   },
   {
     name: "Enshrouded",
     price: "3,50€",
-    icon: EnshroudedIcon,
-    color: "from-purple-500/20 to-violet-600/20",
+    image: enshroudedImg,
+    color: "from-cyan-500/30 to-blue-600/30",
   },
   {
     name: "The Isle",
     price: "4,80€",
-    icon: TheIsleIcon,
-    color: "from-emerald-500/20 to-teal-600/20",
+    image: theisleImg,
+    color: "from-emerald-500/30 to-teal-600/30",
   },
   {
     name: "DayZ",
     price: "5,99€",
-    icon: DayZIcon,
-    color: "from-gray-500/20 to-slate-600/20",
+    image: dayzImg,
+    color: "from-gray-500/30 to-slate-600/30",
   },
 ];
 
@@ -107,22 +107,27 @@ export const GamesSection = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group relative"
             >
-              <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${game.color} p-[1px]`}>
-                <div className="relative bg-card rounded-2xl p-6 h-full transition-all duration-500 group-hover:bg-card/80">
+              <div className="relative overflow-hidden rounded-2xl h-full">
+                {/* Background image */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                  style={{ backgroundImage: `url(${game.image})` }}
+                />
+                
+                {/* Overlay gradient */}
+                <div className={`absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent`} />
+                
+                {/* Content */}
+                <div className="relative p-6 pt-32 h-full flex flex-col justify-end">
                   {/* Popular badge */}
                   {game.popular && (
-                    <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold">
+                    <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
                       Populaire
                     </div>
                   )}
 
-                  {/* Game icon */}
-                  <div className="mb-6 transform group-hover:scale-110 transition-transform duration-500">
-                    <game.icon />
-                  </div>
-
                   {/* Game info */}
-                  <h3 className="font-display text-xl font-bold text-foreground mb-2">
+                  <h3 className="font-display text-xl font-bold text-foreground mb-1">
                     {game.name}
                   </h3>
                   <p className="text-muted-foreground text-sm mb-4">
@@ -131,8 +136,9 @@ export const GamesSection = () => {
 
                   {/* CTA */}
                   <Button 
-                    variant="ghost" 
-                    className="w-full group/btn justify-between hover:bg-primary/10"
+                    variant="glow" 
+                    size="sm"
+                    className="w-full group/btn justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   >
                     Déployer
                     <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />

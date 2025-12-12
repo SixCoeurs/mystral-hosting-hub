@@ -18,7 +18,7 @@ const navLinks = [
   },
   { label: "VPS", href: "/vps" },
   { label: "VDS", href: "/vds" },
-  { label: "À Propos", href: "/#features" },
+  { label: "Entreprise", href: "/entreprise" },
   { label: "Contact", href: "/#contact" },
 ];
 
