@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import fivemHero from "@/assets/games/heroes/fivem-hero.jpg";
+import fivemHeroVideo from "@/assets/games/heroes/fivem-hero.mp4";
 
 const plans = [
   { name: "RP Starter", slots: "32", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "14,99€" },
@@ -12,7 +12,7 @@ const FiveMPage = () => {
     <GamePageTemplate
       name="FiveM"
       description="Créez votre serveur roleplay GTA V ultime. Framework ESX/QBCore pré-configurés, ressources illimitées."
-      heroImage={fivemHero}
+      heroVideo={fivemHeroVideo}
       accentColor="#F49B0B"
       features={["ESX/QBCore", "OneSync", "Ressources illimitées", "Base de données"]}
       plans={plans}
