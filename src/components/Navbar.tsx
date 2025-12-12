@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Server, ChevronDown, Phone, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronDown, Phone, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
 
@@ -57,11 +57,7 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-3">
-              <div className="relative">
-                <Server className="w-10 h-10 text-primary" />
-                <div className="absolute inset-0 blur-lg bg-primary/50 group-hover:bg-primary/70 transition-all duration-300" />
-              </div>
+            <motion.div whileHover={{ scale: 1.02 }}>
               <span className="font-display text-2xl font-bold tracking-wider">
                 <span className="gradient-text">MYSTRAL</span>
               </span>
