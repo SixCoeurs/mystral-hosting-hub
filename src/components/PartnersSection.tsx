@@ -4,10 +4,12 @@ import intelLogo from "@/assets/partners/intel.png";
 import mikrotikLogo from "@/assets/partners/mikrotik.svg";
 import skhynixLogo from "@/assets/partners/skhynix.svg";
 import infomaniakLogo from "@/assets/partners/infomaniak.png";
+import ciscoLogo from "@/assets/partners/cisco.png";
 
 const partners = [
   { name: "Dell", logo: dellLogo },
   { name: "Intel", logo: intelLogo },
+  { name: "Cisco", logo: ciscoLogo },
   { name: "MikroTik", logo: mikrotikLogo },
   { name: "Infomaniak", logo: infomaniakLogo },
   { name: "SK hynix", logo: skhynixLogo },
