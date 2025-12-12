@@ -137,7 +137,7 @@ export const Navbar = () => {
                         </div>
                         <div className="border-t border-border/30 p-2">
                           <Link 
-                            to="/#games" 
+                            to="/games" 
                             className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-primary/10 transition-colors text-sm text-muted-foreground hover:text-primary"
                           >
                             <span>Voir tous les jeux</span>
