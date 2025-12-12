@@ -1,30 +1,32 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Server, ChevronDown, Shield, Phone } from "lucide-react";
+import { Menu, X, Server, ChevronDown, Phone } from "lucide-react";
 import { Button } from "./ui/button";
+import { Link, useLocation } from "react-router-dom";
 
 const navLinks = [
   { 
     label: "Serveurs de Jeux", 
-    href: "#games",
+    href: "/#games",
     hasDropdown: true,
     dropdownItems: [
-      { label: "Minecraft", href: "#minecraft" },
-      { label: "Rust", href: "#rust" },
-      { label: "ARK", href: "#ark" },
-      { label: "FiveM", href: "#fivem" },
+      { label: "Minecraft", href: "/#games" },
+      { label: "Rust", href: "/#games" },
+      { label: "ARK", href: "/#games" },
+      { label: "FiveM", href: "/#games" },
     ]
   },
-  { label: "VPS", href: "#vps" },
-  { label: "Serveurs Dédiés", href: "#dedicated" },
-  { label: "À Propos", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "VPS", href: "/vps" },
+  { label: "VDS", href: "/vds" },
+  { label: "À Propos", href: "/#features" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,6 +35,8 @@ export const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const isExternal = (href: string) => href.startsWith("/#") || href.startsWith("#");
 
   return (
     <motion.nav
@@ -46,19 +50,17 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <motion.a 
-            href="#" 
-            className="flex items-center gap-3 group"
-            whileHover={{ scale: 1.02 }}
-          >
-            <div className="relative">
-              <Server className="w-10 h-10 text-primary" />
-              <div className="absolute inset-0 blur-lg bg-primary/50 group-hover:bg-primary/70 transition-all duration-300" />
-            </div>
-            <span className="font-display text-2xl font-bold tracking-wider">
-              <span className="gradient-text">MYSTRAL</span>
-            </span>
-          </motion.a>
+          <Link to="/" className="flex items-center gap-3 group">
+            <motion.div whileHover={{ scale: 1.02 }} className="flex items-center gap-3">
+              <div className="relative">
+                <Server className="w-10 h-10 text-primary" />
+                <div className="absolute inset-0 blur-lg bg-primary/50 group-hover:bg-primary/70 transition-all duration-300" />
+              </div>
+              <span className="font-display text-2xl font-bold tracking-wider">
+                <span className="gradient-text">MYSTRAL</span>
+              </span>
+            </motion.div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8">
@@ -69,13 +71,23 @@ export const Navbar = () => {
                 onMouseEnter={() => link.hasDropdown && setActiveDropdown(link.label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <a
-                  href={link.href}
-                  className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-300 text-sm font-medium"
-                >
-                  {link.label}
-                  {link.hasDropdown && <ChevronDown className="w-4 h-4" />}
-                </a>
+                {isExternal(link.href) ? (
+                  <a
+                    href={link.href}
+                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-300 text-sm font-medium"
+                  >
+                    {link.label}
+                    {link.hasDropdown && <ChevronDown className="w-4 h-4" />}
+                  </a>
+                ) : (
+                  <Link
+                    to={link.href}
+                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-300 text-sm font-medium"
+                  >
+                    {link.label}
+                    {link.hasDropdown && <ChevronDown className="w-4 h-4" />}
+                  </Link>
+                )}
                 
                 {link.hasDropdown && (
                   <AnimatePresence>
@@ -106,10 +118,6 @@ export const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Shield className="w-4 h-4 text-primary" />
-              Sous Attaque?
-            </Button>
             <Button variant="glass" size="sm" className="gap-2">
               <Phone className="w-4 h-4" />
               +33 1 23 45 67 89
@@ -140,14 +148,25 @@ export const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-6 space-y-4">
               {navLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </a>
+                isExternal(link.href) ? (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.label}
+                    to={link.href}
+                    className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                )
               ))}
               <div className="pt-4 space-y-3">
                 <Button variant="glow" className="w-full">

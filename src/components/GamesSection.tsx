@@ -1,57 +1,67 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { Button } from "./ui/button";
+import { 
+  MinecraftIcon, 
+  RustIcon, 
+  ArkIcon, 
+  FiveMIcon, 
+  PalworldIcon, 
+  EnshroudedIcon, 
+  TheIsleIcon, 
+  DayZIcon 
+} from "./icons/GameIcons";
 
 const games = [
   {
     name: "Minecraft",
     price: "0,50€",
-    image: "🟫",
+    icon: MinecraftIcon,
     color: "from-green-500/20 to-emerald-600/20",
     popular: true,
   },
   {
     name: "Rust",
     price: "7,40€",
-    image: "🦀",
+    icon: RustIcon,
     color: "from-orange-500/20 to-red-600/20",
     popular: true,
   },
   {
     name: "ARK: Survival",
     price: "7,60€",
-    image: "🦖",
+    icon: ArkIcon,
     color: "from-blue-500/20 to-cyan-600/20",
   },
   {
     name: "FiveM",
     price: "4,99€",
-    image: "🚗",
-    color: "from-purple-500/20 to-pink-600/20",
+    icon: FiveMIcon,
+    color: "from-orange-500/20 to-amber-600/20",
   },
   {
     name: "Palworld",
     price: "6,00€",
-    image: "🐾",
-    color: "from-yellow-500/20 to-amber-600/20",
+    icon: PalworldIcon,
+    color: "from-green-500/20 to-lime-600/20",
     popular: true,
   },
   {
     name: "Enshrouded",
     price: "3,50€",
-    image: "⚔️",
-    color: "from-indigo-500/20 to-violet-600/20",
+    icon: EnshroudedIcon,
+    color: "from-purple-500/20 to-violet-600/20",
   },
   {
     name: "The Isle",
     price: "4,80€",
-    image: "🦕",
+    icon: TheIsleIcon,
     color: "from-emerald-500/20 to-teal-600/20",
   },
   {
     name: "DayZ",
     price: "5,99€",
-    image: "🧟",
+    icon: DayZIcon,
     color: "from-gray-500/20 to-slate-600/20",
   },
 ];
@@ -107,8 +117,8 @@ export const GamesSection = () => {
                   )}
 
                   {/* Game icon */}
-                  <div className="text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-500">
-                    {game.image}
+                  <div className="mb-6 transform group-hover:scale-110 transition-transform duration-500">
+                    <game.icon />
                   </div>
 
                   {/* Game info */}
