@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, Shield, Zap, Clock, Server } from "lucide-react";
+import { Shield, Zap, Clock, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -118,16 +118,10 @@ const VPSPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-3 glass px-6 py-3 rounded-full border border-primary/30 mb-6"
+              className="inline-flex items-center gap-2 glass px-6 py-3 rounded-full border border-primary/30 mb-6"
             >
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                <span className="text-foreground font-semibold">4.9/5</span> - 500+ avis
-              </span>
+              <Server className="w-4 h-4 text-primary" />
+              <span className="text-sm text-foreground font-medium">Hébergement Professionnel</span>
             </motion.div>
 
             <motion.h1
