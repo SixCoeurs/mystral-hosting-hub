@@ -41,7 +41,7 @@ export const PartnersSection = () => {
             className="flex gap-20 md:gap-32 items-center"
             animate={{ x: ["0%", "-50%"] }}
             transition={{
-              duration: 20,
+              duration: 40,
               repeat: Infinity,
               ease: "linear",
             }}
