@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import rustImg from "@/assets/games/rust.jpg";
+import rustHero from "@/assets/games/heroes/rust-hero.jpg";
 
 const plans = [
   { name: "Starter", slots: "50", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "9,99€" },
@@ -12,7 +12,7 @@ const RustPage = () => {
     <GamePageTemplate
       name="Rust"
       description="Serveurs Rust haute performance avec protection DDoS renforcée. Oxide/uMod pré-installé, wipes automatiques configurables."
-      heroImage={rustImg}
+      heroImage={rustHero}
       accentColor="#CE422B"
       features={["Oxide/uMod", "Wipes auto", "Anti-cheat", "Maps custom"]}
       plans={plans}

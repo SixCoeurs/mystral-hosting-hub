@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import enshroudedImg from "@/assets/games/enshrouded.jpg";
+import enshroudedHero from "@/assets/games/heroes/enshrouded-hero.jpg";
 
 const plans = [
   { name: "Duo", slots: "4", ram: "8 GB", cpu: "4 vCores", storage: "30 GB", price: "9,99€" },
@@ -12,7 +12,7 @@ const EnshroudedPage = () => {
     <GamePageTemplate
       name="Enshrouded"
       description="Explorez le monde mystérieux d'Enshrouded avec votre équipe. Serveurs dédiés avec sauvegardes automatiques."
-      heroImage={enshroudedImg}
+      heroImage={enshroudedHero}
       accentColor="#8B5CF6"
       features={["Coop fluide", "Backups auto", "Mises à jour", "Panel simple"]}
       plans={plans}

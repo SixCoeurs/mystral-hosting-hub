@@ -1,5 +1,5 @@
 import { GamePageTemplate } from "./GamePageTemplate";
-import dayzImg from "@/assets/games/dayz.jpg";
+import dayzHero from "@/assets/games/heroes/dayz-hero.jpg";
 
 const plans = [
   { name: "Survivor", slots: "20", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "9,99€" },
@@ -12,7 +12,7 @@ const DayZPage = () => {
     <GamePageTemplate
       name="DayZ"
       description="Survivez dans un monde post-apocalyptique sur votre serveur DayZ. Mods Steam Workshop, économie, traders - tout est possible."
-      heroImage={dayzImg}
+      heroImage={dayzHero}
       accentColor="#4A5D23"
       features={["Mods Workshop", "Traders", "Économie", "Maps custom"]}
       plans={plans}
