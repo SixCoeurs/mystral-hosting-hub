@@ -128,39 +128,35 @@ const mockUser: User = {
 export const api = {
   // Authentication
   async register(data: RegisterData): Promise<AuthResponse> {
-    // TODO: Replace with real API call
-    // const response = await fetch(`${API_BASE_URL}/auth/register`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data),
-    // });
-    // return response.json();
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    // Mock implementation
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-    
-    const newUser: User = {
-      ...mockUser,
-      uuid: `user-${Date.now()}`,
-      email: data.email,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      phone: data.phone,
-      company_name: data.company_name,
-      email_verified: false,
-      status: 'pending',
-      created_at: new Date().toISOString(),
-    };
-    
-    const token = `mock-token-${Date.now()}`;
-    storeSession(newUser, token);
-    
-    return {
-      success: true,
-      message: 'Compte créé avec succès. Veuillez vérifier votre email.',
-      user: newUser,
-      token,
-    };
+      const result = await response.json();
+
+      if (result.success && result.user && result.token) {
+        storeSession(result.user, result.token);
+        return {
+          success: true,
+          message: 'Compte créé avec succès',
+          user: result.user,
+          token: result.token,
+        };
+      }
+
+      return {
+        success: false,
+        message: result.message || 'Erreur lors de l\'inscription'
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Erreur de connexion au serveur'
+      };
+    }
   },
 
   async login(data: LoginData): Promise<AuthResponse> {
@@ -201,160 +197,186 @@ export const api = {
   },
 
   async logout(): Promise<{ success: boolean }> {
-    // TODO: Replace with real API call
-    // const session = getStoredSession();
-    // await fetch(`${API_BASE_URL}/auth/logout`, {
-    //   method: 'POST',
-    //   headers: { 
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${session?.token}`,
-    //   },
-    // });
-
+    const session = getStoredSession();
+    try {
+      if (session?.token) {
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.token}`,
+          },
+        });
+      }
+    } catch {
+      // Ignore errors on logout
+    }
     clearSession();
     return { success: true };
   },
 
   async getCurrentUser(): Promise<AuthResponse> {
-    // TODO: Replace with real API call
-    // const session = getStoredSession();
-    // if (!session?.token) return { success: false };
-    // const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    //   headers: { 'Authorization': `Bearer ${session.token}` },
-    // });
-    // return response.json();
-
     const session = getStoredSession();
-    if (!session) {
+    if (!session?.token) {
       return { success: false };
     }
-    
-    return {
-      success: true,
-      user: session.user,
-      token: session.token,
-    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: { 'Authorization': `Bearer ${session.token}` },
+      });
+      const result = await response.json();
+
+      if (result.success && result.user) {
+        storeSession(result.user, session.token);
+        return {
+          success: true,
+          user: result.user,
+          token: session.token,
+        };
+      }
+
+      clearSession();
+      return { success: false };
+    } catch {
+      // If server is unreachable, use cached session
+      return {
+        success: true,
+        user: session.user,
+        token: session.token,
+      };
+    }
   },
 
   // Profile Management
   async updateProfile(data: UpdateProfileData): Promise<AuthResponse> {
-    // TODO: Replace with real API call
-    // const session = getStoredSession();
-    // const response = await fetch(`${API_BASE_URL}/user/profile`, {
-    //   method: 'PUT',
-    //   headers: { 
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${session?.token}`,
-    //   },
-    //   body: JSON.stringify(data),
-    // });
-    // return response.json();
-
-    await new Promise(resolve => setTimeout(resolve, 600));
-    
     const session = getStoredSession();
-    if (!session) {
+    if (!session?.token) {
       return { success: false, message: 'Non authentifié' };
     }
-    
-    const updatedUser: User = {
-      ...session.user,
-      ...data,
-    };
-    
-    storeSession(updatedUser, session.token);
-    
-    return {
-      success: true,
-      message: 'Profil mis à jour avec succès',
-      user: updatedUser,
-    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.user) {
+        storeSession(result.user, session.token);
+        return {
+          success: true,
+          message: 'Profil mis à jour avec succès',
+          user: result.user,
+        };
+      }
+
+      return {
+        success: false,
+        message: result.message || 'Erreur lors de la mise à jour'
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Erreur de connexion au serveur'
+      };
+    }
   },
 
   async changePassword(data: ChangePasswordData): Promise<AuthResponse> {
-    // TODO: Replace with real API call
-    // const session = getStoredSession();
-    // const response = await fetch(`${API_BASE_URL}/user/password`, {
-    //   method: 'PUT',
-    //   headers: { 
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${session?.token}`,
-    //   },
-    //   body: JSON.stringify(data),
-    // });
-    // return response.json();
-
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    if (data.new_password.length < 8) {
-      return { success: false, message: 'Le mot de passe doit contenir au moins 8 caractères' };
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
     }
-    
-    return {
-      success: true,
-      message: 'Mot de passe modifié avec succès',
-    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        message: result.message || (result.success ? 'Mot de passe modifié avec succès' : 'Erreur')
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Erreur de connexion au serveur'
+      };
+    }
   },
 
   async requestPasswordReset(email: string): Promise<AuthResponse> {
-    // TODO: Replace with real API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    return {
-      success: true,
-      message: 'Si un compte existe avec cette adresse, vous recevrez un email de réinitialisation.',
-    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/request-password-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        message: result.message || 'Si un compte existe avec cette adresse, vous recevrez un email.',
+      };
+    } catch {
+      return {
+        success: true,
+        message: 'Si un compte existe avec cette adresse, vous recevrez un email.',
+      };
+    }
   },
 
   // Services
   async getServices(): Promise<{ success: boolean; services: Service[] }> {
-    // TODO: Replace with real API call
-    // const session = getStoredSession();
-    // const response = await fetch(`${API_BASE_URL}/services`, {
-    //   headers: { 'Authorization': `Bearer ${session?.token}` },
-    // });
-    // return response.json();
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, services: [] };
+    }
 
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Mock service for demo
-    const mockServices: Service[] = [
-      {
-        id: 1,
-        uuid: 'srv_12345',
-        hostname: 'prod-server-01',
-        label: 'Production Server',
-        status: 'active',
-        product_name: 'VDS GAME 3',
-        category_name: 'VDS',
-        location_name: 'Paris, FR',
-        primary_ip: '185.234.72.156',
-        billing_cycle: 'monthly',
-        billing_amount: 53.99,
-        next_due_date: '2025-01-13',
-        current_specs: {},
-      },
-      {
-        id: 2,
-        uuid: 'srv_67890',
-        hostname: 'minecraft-srv',
-        label: 'Serveur Minecraft',
-        status: 'active',
-        product_name: 'Minecraft Essential',
-        category_name: 'Game Server',
-        location_name: 'Paris, FR',
-        primary_ip: '185.234.72.157',
-        billing_cycle: 'monthly',
-        billing_amount: 9.99,
-        next_due_date: '2025-01-20',
-        current_specs: {},
-      },
-    ];
-    
-    return {
-      success: true,
-      services: mockServices,
-    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/services`, {
+        headers: { 'Authorization': `Bearer ${session.token}` },
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        return {
+          success: true,
+          services: result.services.map((s: Record<string, unknown>) => ({
+            id: s.id,
+            uuid: s.uuid,
+            hostname: s.hostname,
+            label: s.label,
+            status: s.status,
+            product_name: s.product?.name,
+            category_name: s.product?.category,
+            location_name: s.location?.name,
+            primary_ip: s.primary_ip,
+            billing_cycle: s.billing?.cycle,
+            billing_amount: s.billing?.amount,
+            next_due_date: s.billing?.next_due_date,
+            current_specs: s.specs || {},
+          })),
+        };
+      }
+
+      return { success: false, services: [] };
+    } catch {
+      return { success: false, services: [] };
+    }
   },
 
   // Security logs
@@ -364,18 +386,24 @@ export const api = {
     created_at: string;
     details?: Record<string, unknown>;
   }> }> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    return {
-      success: true,
-      logs: [
-        {
-          event_type: 'login_success',
-          ip_address: '192.168.1.1',
-          created_at: new Date().toISOString(),
-        },
-      ],
-    };
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, logs: [] };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/security-logs`, {
+        headers: { 'Authorization': `Bearer ${session.token}` },
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        logs: result.logs || [],
+      };
+    } catch {
+      return { success: false, logs: [] };
+    }
   },
 
   // 2FA
