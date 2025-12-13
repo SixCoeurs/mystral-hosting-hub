@@ -11,6 +11,7 @@ const GmodPage = () => {
   return (
     <GamePageTemplate
       name="Garry's Mod"
+      gameId="gmod"
       description="Créez, jouez et partagez sans limites. Sandbox ultime avec des milliers d'addons, gamemodes TTT, DarkRP, PropHunt et bien plus."
       heroImage={gmodHero}
       accentColor="#F79E1B"

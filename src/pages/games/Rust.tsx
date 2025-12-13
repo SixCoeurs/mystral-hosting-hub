@@ -11,6 +11,7 @@ const RustPage = () => {
   return (
     <GamePageTemplate
       name="Rust"
+      gameId="rust"
       description="Serveurs Rust haute performance avec protection DDoS renforcée. Oxide/uMod pré-installé, wipes automatiques configurables."
       heroImage={rustHero}
       accentColor="#CE422B"

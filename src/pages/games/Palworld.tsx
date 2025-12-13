@@ -11,6 +11,7 @@ const PalworldPage = () => {
   return (
     <GamePageTemplate
       name="Palworld"
+      gameId="palworld"
       description="Hébergez votre aventure Palworld avec vos amis. Serveurs optimisés pour des performances stables et un gameplay fluide."
       heroImage={palworldHero}
       accentColor="#4ECDC4"

@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 interface GamePlan {
   name: string;
@@ -18,6 +19,7 @@ interface GamePlan {
 
 interface GamePageProps {
   name: string;
+  gameId: string;
   description: string;
   heroImage?: string;
   heroVideo?: string;
@@ -28,6 +30,7 @@ interface GamePageProps {
 
 export const GamePageTemplate = ({
   name,
+  gameId,
   description,
   heroImage,
   heroVideo,
@@ -35,6 +38,7 @@ export const GamePageTemplate = ({
   features,
   plans,
 }: GamePageProps) => {
+  const navigate = useNavigate();
   const [customRam, setCustomRam] = useState([8]);
   const [customSlots, setCustomSlots] = useState([32]);
 
@@ -43,6 +47,14 @@ export const GamePageTemplate = ({
     const ramPrice = customRam[0] * 0.5;
     const slotsPrice = customSlots[0] * 0.05;
     return (basePrice + ramPrice + slotsPrice).toFixed(2);
+  };
+  
+  const handlePlanSelect = (planName: string) => {
+    navigate(`/checkout?type=game&game=${gameId}&plan=${encodeURIComponent(planName)}`);
+  };
+  
+  const handleCustomConfig = () => {
+    navigate(`/checkout?type=game&game=${gameId}&ram=${customRam[0]}&slots=${customSlots[0]}`);
   };
 
   return (
@@ -235,6 +247,7 @@ export const GamePageTemplate = ({
                     variant={plan.popular ? "glow" : "outline"} 
                     size="lg"
                     className="w-full gap-2 text-base font-bold uppercase tracking-wide"
+                    onClick={() => handlePlanSelect(plan.name)}
                   >
                     <Zap className="w-4 h-4" />
                     Déployer le serveur
@@ -324,7 +337,7 @@ export const GamePageTemplate = ({
                     <p className="text-sm">Protection DDoS + Support 24/7</p>
                   </div>
                 </div>
-                <Button variant="glow" size="lg" className="w-full">
+                <Button variant="glow" size="lg" className="w-full" onClick={handleCustomConfig}>
                   Configurer mon serveur
                 </Button>
               </div>

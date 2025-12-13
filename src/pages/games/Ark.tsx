@@ -11,6 +11,7 @@ const ArkPage = () => {
   return (
     <GamePageTemplate
       name="ARK: Survival Evolved"
+      gameId="ark"
       description="Domptez des dinosaures sur votre propre serveur ARK. Support complet des mods Steam Workshop et clusters multi-maps."
       heroImage={arkHero}
       accentColor="#FF6B00"

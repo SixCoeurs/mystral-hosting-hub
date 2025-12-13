@@ -97,6 +97,50 @@ const vdsPlans = [
   { id: "vds-enterprise", name: "VDS Enterprise", cpu: 16, ram: 128, storage: 1600, bandwidth: "Illimité", price: 399.99 },
 ];
 
+// Game plans by game type
+const gamePlans: Record<string, { id: string; name: string; slots: number; ram: number; cpu: number; storage: number; price: number; popular?: boolean }[]> = {
+  minecraft: [
+    { id: "vanilla", name: "Vanilla", slots: 10, ram: 2, cpu: 2, storage: 10, price: 2.99 },
+    { id: "modded", name: "Modded", slots: 20, ram: 4, cpu: 3, storage: 25, price: 5.99, popular: true },
+    { id: "network", name: "Network", slots: 100, ram: 8, cpu: 4, storage: 50, price: 12.99 },
+  ],
+  rust: [
+    { id: "starter", name: "Starter", slots: 50, ram: 8, cpu: 4, storage: 50, price: 9.99 },
+    { id: "community", name: "Community", slots: 150, ram: 16, cpu: 6, storage: 100, price: 19.99, popular: true },
+    { id: "official", name: "Official", slots: 500, ram: 32, cpu: 8, storage: 200, price: 39.99 },
+  ],
+  ark: [
+    { id: "solo-duo", name: "Solo/Duo", slots: 10, ram: 8, cpu: 4, storage: 50, price: 12.99 },
+    { id: "tribe", name: "Tribe", slots: 30, ram: 16, cpu: 6, storage: 100, price: 24.99, popular: true },
+    { id: "cluster", name: "Cluster", slots: 70, ram: 32, cpu: 8, storage: 200, price: 44.99 },
+  ],
+  fivem: [
+    { id: "rp-starter", name: "RP Starter", slots: 32, ram: 8, cpu: 4, storage: 50, price: 14.99 },
+    { id: "rp-pro", name: "RP Pro", slots: 64, ram: 16, cpu: 6, storage: 100, price: 29.99, popular: true },
+    { id: "rp-ultimate", name: "RP Ultimate", slots: 256, ram: 32, cpu: 8, storage: 200, price: 59.99 },
+  ],
+  palworld: [
+    { id: "coop", name: "Coop", slots: 4, ram: 8, cpu: 4, storage: 30, price: 9.99 },
+    { id: "friends", name: "Friends", slots: 16, ram: 16, cpu: 6, storage: 50, price: 19.99, popular: true },
+    { id: "community", name: "Community", slots: 32, ram: 32, cpu: 8, storage: 100, price: 34.99 },
+  ],
+  enshrouded: [
+    { id: "duo", name: "Duo", slots: 4, ram: 8, cpu: 4, storage: 30, price: 9.99 },
+    { id: "squad", name: "Squad", slots: 8, ram: 16, cpu: 6, storage: 50, price: 17.99, popular: true },
+    { id: "clan", name: "Clan", slots: 16, ram: 24, cpu: 8, storage: 80, price: 27.99 },
+  ],
+  gmod: [
+    { id: "sandbox", name: "Sandbox", slots: 16, ram: 4, cpu: 2, storage: 20, price: 5.99 },
+    { id: "community", name: "Community", slots: 32, ram: 8, cpu: 4, storage: 40, price: 9.99, popular: true },
+    { id: "ultimate", name: "Ultimate", slots: 64, ram: 16, cpu: 6, storage: 80, price: 17.99 },
+  ],
+  dayz: [
+    { id: "survivor", name: "Survivor", slots: 20, ram: 8, cpu: 4, storage: 50, price: 9.99 },
+    { id: "community", name: "Community", slots: 40, ram: 16, cpu: 6, storage: 100, price: 17.99, popular: true },
+    { id: "official", name: "Official", slots: 60, ram: 24, cpu: 8, storage: 150, price: 27.99 },
+  ],
+};
+
 const addons = [
   { id: "backup", name: "Sauvegarde automatique", description: "Sauvegardes quotidiennes avec 7 jours de rétention", price: 4.99, icon: HardDrive },
   { id: "ddos", name: "Protection DDoS avancée", description: "Protection jusqu'à 1Tbps", price: 9.99, icon: Shield },
@@ -123,6 +167,7 @@ export default function Checkout() {
   // Game-specific
   const [gameSlots, setGameSlots] = useState<number>(10);
   const [gameRam, setGameRam] = useState<number>(4);
+  const [isCustomConfig, setIsCustomConfig] = useState<boolean>(false);
   
   // Customer info
   const [customerInfo, setCustomerInfo] = useState({
@@ -142,14 +187,46 @@ export default function Checkout() {
     const type = searchParams.get("type") as ServiceType | null;
     const game = searchParams.get("game");
     const plan = searchParams.get("plan");
+    const ram = searchParams.get("ram");
+    const slots = searchParams.get("slots");
     
     if (type) {
       setServiceType(type);
-      if (type !== "game") setStep(2);
+      if (type === "game" && game) {
+        setSelectedGame(game);
+        if (ram && slots) {
+          // Custom config from game page
+          setIsCustomConfig(true);
+          setGameRam(parseInt(ram));
+          setGameSlots(parseInt(slots));
+          setStep(2);
+        } else if (plan) {
+          // Predefined plan from game page
+          const gameSpecificPlans = gamePlans[game] || [];
+          const matchedPlan = gameSpecificPlans.find(p => 
+            p.name.toLowerCase() === plan.toLowerCase() || 
+            p.id === plan.toLowerCase().replace(/[^a-z0-9]/g, '-')
+          );
+          if (matchedPlan) {
+            setSelectedPlan(matchedPlan.id);
+            setGameRam(matchedPlan.ram);
+            setGameSlots(matchedPlan.slots);
+          }
+          setStep(2);
+        }
+      } else if (type !== "game") {
+        setStep(2);
+        if (plan) setSelectedPlan(plan);
+      }
     }
-    if (game) setSelectedGame(game);
-    if (plan) setSelectedPlan(plan);
   }, [searchParams]);
+  
+  const getGamePlans = () => {
+    if (selectedGame && gamePlans[selectedGame]) {
+      return gamePlans[selectedGame];
+    }
+    return [];
+  };
   
   const getPlans = () => {
     if (serviceType === "vps") return vpsPlans;
@@ -158,6 +235,11 @@ export default function Checkout() {
   };
   
   const calculateGamePrice = () => {
+    if (!isCustomConfig && selectedPlan) {
+      const plans = getGamePlans();
+      const plan = plans.find(p => p.id === selectedPlan);
+      if (plan) return plan.price.toFixed(2);
+    }
     const basePrice = 2;
     const ramPrice = gameRam * 1.5;
     const slotPrice = gameSlots * 0.1;
@@ -312,45 +394,116 @@ export default function Checkout() {
             />
           </div>
           
-          {/* RAM Slider */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label>Mémoire RAM</Label>
-              <span className="font-display text-xl font-bold text-primary">{gameRam} Go</span>
+          {/* Predefined Plans */}
+          {getGamePlans().length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Choisissez une offre</Label>
+                <button 
+                  onClick={() => {
+                    setIsCustomConfig(!isCustomConfig);
+                    if (!isCustomConfig) setSelectedPlan("");
+                  }}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {isCustomConfig ? "Voir les offres prédéfinies" : "Configuration personnalisée"}
+                </button>
+              </div>
+              
+              {!isCustomConfig && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {getGamePlans().map(plan => (
+                    <button
+                      key={plan.id}
+                      onClick={() => {
+                        setSelectedPlan(plan.id);
+                        setGameRam(plan.ram);
+                        setGameSlots(plan.slots);
+                      }}
+                      className={`p-6 rounded-xl border-2 transition-all text-left relative ${
+                        selectedPlan === plan.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50 bg-card"
+                      }`}
+                    >
+                      {plan.popular && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
+                          POPULAIRE
+                        </div>
+                      )}
+                      <h3 className="font-display font-bold text-lg mb-4">{plan.name}</h3>
+                      <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                        <li className="flex items-center gap-2">
+                          <Cpu className="w-4 h-4" />
+                          {plan.cpu} vCPU
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <MemoryStick className="w-4 h-4" />
+                          {plan.ram} Go RAM
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <HardDrive className="w-4 h-4" />
+                          {plan.storage} Go NVMe
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          {plan.slots} joueurs
+                        </li>
+                      </ul>
+                      <div className="font-display text-2xl font-bold gradient-text">
+                        {plan.price}€<span className="text-sm text-muted-foreground">/mois</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <Slider
-              value={[gameRam]}
-              onValueChange={(value) => setGameRam(value[0])}
-              min={2}
-              max={32}
-              step={2}
-              className="max-w-xl"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground max-w-xl">
-              <span>2 Go</span>
-              <span>32 Go</span>
-            </div>
-          </div>
+          )}
           
-          {/* Slots Slider */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <Label>Nombre de joueurs</Label>
-              <span className="font-display text-xl font-bold text-primary">{gameSlots} slots</span>
-            </div>
-            <Slider
-              value={[gameSlots]}
-              onValueChange={(value) => setGameSlots(value[0])}
-              min={2}
-              max={200}
-              step={2}
-              className="max-w-xl"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground max-w-xl">
-              <span>2 slots</span>
-              <span>200 slots</span>
-            </div>
-          </div>
+          {/* Custom Configuration */}
+          {isCustomConfig && (
+            <>
+              {/* RAM Slider */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label>Mémoire RAM</Label>
+                  <span className="font-display text-xl font-bold text-primary">{gameRam} Go</span>
+                </div>
+                <Slider
+                  value={[gameRam]}
+                  onValueChange={(value) => setGameRam(value[0])}
+                  min={2}
+                  max={32}
+                  step={2}
+                  className="max-w-xl"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground max-w-xl">
+                  <span>2 Go</span>
+                  <span>32 Go</span>
+                </div>
+              </div>
+              
+              {/* Slots Slider */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label>Nombre de joueurs</Label>
+                  <span className="font-display text-xl font-bold text-primary">{gameSlots} slots</span>
+                </div>
+                <Slider
+                  value={[gameSlots]}
+                  onValueChange={(value) => setGameSlots(value[0])}
+                  min={2}
+                  max={200}
+                  step={2}
+                  className="max-w-xl"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground max-w-xl">
+                  <span>2 slots</span>
+                  <span>200 slots</span>
+                </div>
+              </div>
+            </>
+          )}
           
           {/* Price Preview */}
           <div className="p-6 rounded-xl bg-primary/10 border border-primary/30 max-w-xl">

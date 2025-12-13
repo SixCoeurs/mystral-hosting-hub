@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 interface Plan {
   name: string;
@@ -15,14 +16,17 @@ interface Plan {
 interface PricingGridProps {
   plans: Plan[];
   columns?: 2 | 3 | 4;
+  serviceType?: "vps" | "vds" | "enterprise";
 }
 
 export const PricingCard = ({ 
   plan, 
-  index 
+  index,
+  serviceType = "vps"
 }: { 
   plan: Plan; 
   index: number;
+  serviceType?: "vps" | "vds" | "enterprise";
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
@@ -78,19 +82,21 @@ export const PricingCard = ({
           </div>
         )}
         
-        <Button 
-          variant={plan.popular || plan.bestValue ? "glow" : "outline"} 
-          className="w-full"
-          size="lg"
-        >
-          Commander
-        </Button>
+        <Link to={`/checkout?type=${serviceType}&plan=${encodeURIComponent(plan.name.toLowerCase())}`}>
+          <Button 
+            variant={plan.popular || plan.bestValue ? "glow" : "outline"} 
+            className="w-full"
+            size="lg"
+          >
+            Commander
+          </Button>
+        </Link>
       </div>
     </div>
   </motion.div>
 );
 
-export const PricingGrid = ({ plans, columns = 4 }: PricingGridProps) => {
+export const PricingGrid = ({ plans, columns = 4, serviceType = "vps" }: PricingGridProps) => {
   const gridCols = {
     2: "lg:grid-cols-2 max-w-3xl",
     3: "lg:grid-cols-3 max-w-5xl",
@@ -100,7 +106,7 @@ export const PricingGrid = ({ plans, columns = 4 }: PricingGridProps) => {
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 ${gridCols[columns]} gap-6 mx-auto`}>
       {plans.map((plan, index) => (
-        <PricingCard key={plan.name} plan={plan} index={index} />
+        <PricingCard key={plan.name} plan={plan} index={index} serviceType={serviceType} />
       ))}
     </div>
   );
@@ -111,9 +117,10 @@ interface PricingSectionProps {
   subtitle: string;
   plans: Plan[];
   columns?: 2 | 3 | 4;
+  serviceType?: "vps" | "vds" | "enterprise";
 }
 
-export const PricingSection = ({ title, subtitle, plans, columns = 4 }: PricingSectionProps) => (
+export const PricingSection = ({ title, subtitle, plans, columns = 4, serviceType = "vps" }: PricingSectionProps) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -127,6 +134,6 @@ export const PricingSection = ({ title, subtitle, plans, columns = 4 }: PricingS
       </h2>
       <p className="text-muted-foreground">{subtitle}</p>
     </div>
-    <PricingGrid plans={plans} columns={columns} />
+    <PricingGrid plans={plans} columns={columns} serviceType={serviceType} />
   </motion.div>
 );

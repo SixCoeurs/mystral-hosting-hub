@@ -11,6 +11,7 @@ const DayZPage = () => {
   return (
     <GamePageTemplate
       name="DayZ"
+      gameId="dayz"
       description="Survivez dans un monde post-apocalyptique sur votre serveur DayZ. Mods Steam Workshop, économie, traders - tout est possible."
       heroImage={dayzHero}
       accentColor="#4A5D23"

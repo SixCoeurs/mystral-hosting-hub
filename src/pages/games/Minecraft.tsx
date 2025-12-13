@@ -11,6 +11,7 @@ const MinecraftPage = () => {
   return (
     <GamePageTemplate
       name="Minecraft"
+      gameId="minecraft"
       description="Hébergez votre serveur Minecraft avec des performances optimales. Vanilla, Spigot, Paper, Forge, Fabric - tous les modloaders supportés."
       heroImage={minecraftHero}
       accentColor="#5D8C3E"

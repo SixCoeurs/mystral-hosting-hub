@@ -11,6 +11,7 @@ const EnshroudedPage = () => {
   return (
     <GamePageTemplate
       name="Enshrouded"
+      gameId="enshrouded"
       description="Explorez le monde mystérieux d'Enshrouded avec votre équipe. Serveurs dédiés avec sauvegardes automatiques."
       heroImage={enshroudedHero}
       accentColor="#8B5CF6"
