@@ -180,7 +180,10 @@ export const api = {
       return { success: false, message: 'Email et mot de passe requis' };
     }
     
-    // For demo: accept any valid email/password combo
+    // Test credentials: test / test
+    if (data.email !== 'test' && data.password !== 'test') {
+      // For demo: also accept any valid email/password combo
+    }
     const user: User = {
       ...mockUser,
       email: data.email,

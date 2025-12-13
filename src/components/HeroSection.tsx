@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Shield, Headphones } from "lucide-react";
+import { Zap, Shield, Headphones, UserPlus } from "lucide-react";
 import { Button } from "./ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
@@ -105,12 +106,17 @@ export const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
           >
-            <Button variant="hero" size="xl" className="min-w-[200px]">
-              Voir les Serveurs
-            </Button>
-            <Button variant="glass" size="xl" className="min-w-[200px]">
-              Nous Contacter
-            </Button>
+            <Link to="/games">
+              <Button variant="hero" size="xl" className="min-w-[200px]">
+                Voir les Serveurs
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button variant="glass" size="xl" className="min-w-[200px] gap-2">
+                <UserPlus className="w-5 h-5" />
+                Créer un compte
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Stats */}
