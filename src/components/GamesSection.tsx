@@ -9,7 +9,7 @@ import arkImg from "@/assets/games/ark.jpg";
 import fivemImg from "@/assets/games/fivem.jpg";
 import palworldImg from "@/assets/games/palworld.jpg";
 import enshroudedImg from "@/assets/games/enshrouded.jpg";
-import theisleImg from "@/assets/games/theisle.jpg";
+import gmodImg from "@/assets/games/gmod.jpg";
 import dayzImg from "@/assets/games/dayz.jpg";
 
 const games = [
@@ -53,10 +53,10 @@ const games = [
     color: "from-cyan-500/30 to-blue-600/30",
   },
   {
-    name: "The Isle",
-    price: "4,80€",
-    image: theisleImg,
-    color: "from-emerald-500/30 to-teal-600/30",
+    name: "Garry's Mod",
+    price: "5,99€",
+    image: gmodImg,
+    color: "from-amber-500/30 to-orange-600/30",
   },
   {
     name: "DayZ",
