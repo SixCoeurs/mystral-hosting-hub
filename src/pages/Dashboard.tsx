@@ -173,7 +173,7 @@ export default function Dashboard() {
             className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
           >
             {[
-              { icon: Server, label: 'Nouveau Service', href: '/vps', color: 'from-violet-500 to-purple-600' },
+              { icon: Server, label: 'Nouveau Service', href: '/checkout', color: 'from-violet-500 to-purple-600' },
               { icon: CreditCard, label: 'Facturation', href: '/account#billing', color: 'from-blue-500 to-cyan-600' },
               { icon: HelpCircle, label: 'Support', href: '/support', color: 'from-green-500 to-emerald-600' },
               { icon: Settings, label: 'Paramètres', href: '/account', color: 'from-orange-500 to-amber-600' },
