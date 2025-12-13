@@ -4,6 +4,11 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper to convert BigInt to Number
+function toNumber(val) {
+  return typeof val === 'bigint' ? Number(val) : val;
+}
+
 // All routes require authentication
 router.use(authenticate);
 
@@ -41,7 +46,7 @@ router.get('/', async (req, res) => {
     res.json({
       success: true,
       services: services.map(service => ({
-        id: service.id,
+        id: toNumber(service.id),
         uuid: service.uuid,
         hostname: service.hostname,
         label: service.label,
@@ -127,7 +132,7 @@ router.get('/:uuid', async (req, res) => {
     res.json({
       success: true,
       service: {
-        id: service.id,
+        id: toNumber(service.id),
         uuid: service.uuid,
         hostname: service.hostname,
         label: service.label,

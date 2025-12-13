@@ -6,10 +6,15 @@ import { generateToken, authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper to convert BigInt to Number (MariaDB returns BigInt for BIGINT columns)
+function toNumber(val) {
+  return typeof val === 'bigint' ? Number(val) : val;
+}
+
 // Helper to format user for response (exclude sensitive fields)
 function formatUser(user) {
   return {
-    id: user.id,
+    id: toNumber(user.id),
     uuid: user.uuid,
     email: user.email,
     email_verified: Boolean(user.email_verified),
@@ -36,7 +41,7 @@ async function logSecurityEvent(userId, eventType, ip, userAgent, details = null
     await query(
       `INSERT INTO security_logs (user_id, event_type, ip_address, user_agent, details)
        VALUES (?, ?, ?, ?, ?)`,
-      [userId, eventType, ip, userAgent, details ? JSON.stringify(details) : null]
+      [toNumber(userId), eventType, ip, userAgent, details ? JSON.stringify(details) : null]
     );
   } catch (err) {
     console.error('Failed to log security event:', err);
