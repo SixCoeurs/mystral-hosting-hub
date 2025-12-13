@@ -178,6 +178,9 @@ export default function Checkout() {
   const [gameRam, setGameRam] = useState<number>(4);
   const [isCustomConfig, setIsCustomConfig] = useState<boolean>(false);
   
+  // VPS/VDS plans visibility
+  const [showAllPlans, setShowAllPlans] = useState<boolean>(false);
+  
   // Customer info
   const [customerInfo, setCustomerInfo] = useState({
     firstName: "",
@@ -206,6 +209,17 @@ export default function Checkout() {
     const urlAddons = searchParams.get("addons");
     const urlStep = searchParams.get("step");
     const urlCustomConfig = searchParams.get("customConfig");
+    
+    // Customer info from URL
+    const urlFirstName = searchParams.get("firstName");
+    const urlLastName = searchParams.get("lastName");
+    const urlEmail = searchParams.get("email");
+    const urlPhone = searchParams.get("phone");
+    const urlCompany = searchParams.get("company");
+    const urlAddress = searchParams.get("address");
+    const urlCity = searchParams.get("city");
+    const urlPostalCode = searchParams.get("postalCode");
+    const urlCountry = searchParams.get("country");
     
     if (type) {
       setServiceType(type);
@@ -254,6 +268,22 @@ export default function Checkout() {
       if (urlName) setServerName(urlName);
       if (urlBilling) setBillingPeriod(urlBilling);
       if (urlAddons) setSelectedAddons(urlAddons.split(','));
+      
+      // Restore customer info from URL
+      if (urlFirstName || urlLastName || urlEmail || urlAddress) {
+        setCustomerInfo(prev => ({
+          ...prev,
+          firstName: urlFirstName || prev.firstName,
+          lastName: urlLastName || prev.lastName,
+          email: urlEmail || prev.email,
+          phone: urlPhone || prev.phone,
+          company: urlCompany || prev.company,
+          address: urlAddress || prev.address,
+          city: urlCity || prev.city,
+          postalCode: urlPostalCode || prev.postalCode,
+          country: urlCountry || prev.country,
+        }));
+      }
       
       // Set step based on URL or default based on type
       if (urlStep) {
@@ -634,7 +664,7 @@ export default function Checkout() {
           <div className="space-y-4">
             <Label>Choisissez votre offre</Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {getPlans().map(plan => (
+              {(showAllPlans ? getPlans() : getPlans().slice(0, 4)).map(plan => (
                 <button
                   key={plan.id}
                   onClick={() => setSelectedPlan(plan.id)}
@@ -669,6 +699,19 @@ export default function Checkout() {
                 </button>
               ))}
             </div>
+            
+            {/* Show more/less button */}
+            {getPlans().length > 4 && (
+              <div className="flex justify-center pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAllPlans(!showAllPlans)}
+                  className="px-8"
+                >
+                  {showAllPlans ? "Voir moins" : `Voir plus (${getPlans().length - 4} offres)`}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -952,6 +995,16 @@ export default function Checkout() {
         params.set('ram', gameRam.toString());
         params.set('slots', gameSlots.toString());
       }
+      // Add customer info
+      if (customerInfo.firstName) params.set('firstName', customerInfo.firstName);
+      if (customerInfo.lastName) params.set('lastName', customerInfo.lastName);
+      if (customerInfo.email) params.set('email', customerInfo.email);
+      if (customerInfo.phone) params.set('phone', customerInfo.phone);
+      if (customerInfo.company) params.set('company', customerInfo.company);
+      if (customerInfo.address) params.set('address', customerInfo.address);
+      if (customerInfo.city) params.set('city', customerInfo.city);
+      if (customerInfo.postalCode) params.set('postalCode', customerInfo.postalCode);
+      if (customerInfo.country && customerInfo.country !== 'France') params.set('country', customerInfo.country);
       params.set('step', '5');
       return `${location.pathname}?${params.toString()}`;
     };
