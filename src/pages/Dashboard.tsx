@@ -12,8 +12,19 @@ import {
   CheckCircle,
   Clock,
   LogOut,
+  Pencil,
+  Check,
+  X,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, Service } from '@/services/api';
 import { Navbar } from '@/components/Navbar';
@@ -23,6 +34,8 @@ export default function Dashboard() {
   const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
+  const [editingName, setEditingName] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,6 +66,29 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await logout();
     navigate('/');
+  };
+
+  const startEditing = (service: Service, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingServiceId(service.id);
+    setEditingName(service.label || service.hostname || `Service #${service.id}`);
+  };
+
+  const cancelEditing = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingServiceId(null);
+    setEditingName('');
+  };
+
+  const saveServiceName = (serviceId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setServices(prev => 
+      prev.map(s => s.id === serviceId ? { ...s, label: editingName } : s)
+    );
+    setEditingServiceId(null);
+    setEditingName('');
+    // TODO: Call API to persist the name change
+    // api.updateServiceLabel(serviceId, editingName);
   };
 
   const getStatusIcon = (status: string) => {
@@ -168,12 +204,26 @@ export default function Dashboard() {
               <h2 className="text-xl font-display font-bold text-foreground">
                 Mes Services
               </h2>
-              <Link to="/vps">
-                <Button size="sm" className="btn-glow">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Commander
-                </Button>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="btn-glow">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Commander
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-card border-border">
+                  <DropdownMenuItem asChild>
+                    <Link to="/vps" className="cursor-pointer">VPS</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/vds" className="cursor-pointer">VDS</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/enterprise" className="cursor-pointer">Entreprise</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {isLoading ? (
@@ -215,7 +265,8 @@ export default function Dashboard() {
                   <motion.div
                     key={service.id}
                     whileHover={{ scale: 1.005 }}
-                    className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all"
+                    onClick={() => navigate(`/service/${service.id}`)}
+                    className="bg-card border border-border rounded-xl p-6 hover:border-primary/50 transition-all cursor-pointer"
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex items-start gap-4">
@@ -223,9 +274,46 @@ export default function Dashboard() {
                           <Server className="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-foreground">
-                            {service.label || service.hostname || `Service #${service.id}`}
-                          </h3>
+                          {editingServiceId === service.id ? (
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Input
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                className="h-8 w-48"
+                                autoFocus
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => saveServiceName(service.id, e)}
+                              >
+                                <Check className="h-4 w-4 text-green-500" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={cancelEditing}
+                              >
+                                <X className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 group/name">
+                              <h3 className="font-semibold text-foreground">
+                                {service.label || service.hostname || `Service #${service.id}`}
+                              </h3>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover/name:opacity-100 transition-opacity"
+                                onClick={(e) => startEditing(service, e)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                           <p className="text-sm text-muted-foreground">
                             {service.product_name} • {service.location_name}
                           </p>
@@ -254,11 +342,9 @@ export default function Dashboard() {
                             Prochain renouvellement: {new Date(service.next_due_date).toLocaleDateString('fr-FR')}
                           </p>
                         </div>
-                        <Link to={`/service/${service.id}`}>
-                          <Button variant="outline" size="sm">
-                            Gérer
-                          </Button>
-                        </Link>
+                        <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
+                          Gérer
+                        </Button>
                       </div>
                     </div>
                   </motion.div>
