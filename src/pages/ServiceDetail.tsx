@@ -22,12 +22,53 @@ import {
   Thermometer,
   Globe,
   Check,
+  ChevronDown,
+  Key,
+  Trash2,
+  FileText,
+  Download,
+  Upload,
+  RefreshCw,
+  Pencil,
+  CreditCard,
+  AlertTriangle,
+  Lock,
+  Unlock,
+  Image,
+  Database,
+  Wifi,
+  WifiOff,
+  Monitor,
+  History,
+  Bell,
+  Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   LineChart,
   Line,
@@ -164,9 +205,15 @@ export default function ServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [powerLoading, setPowerLoading] = useState<string | null>(null);
+  
+  // Dialogs state
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [newServiceName, setNewServiceName] = useState('');
+  const [reinstallDialogOpen, setReinstallDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [credentialsDialogOpen, setCredentialsDialogOpen] = useState(false);
 
   // TODO: Remplacer par un appel API réel
   const service = mockService;
@@ -180,10 +227,7 @@ export default function ServiceDetail() {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopied(label);
-    toast({
-      title: 'Copié !',
-      description: `${label} copié dans le presse-papiers`,
-    });
+    toast.success(`${label} copié dans le presse-papiers`);
     setTimeout(() => setCopied(null), 2000);
   };
 
@@ -191,11 +235,26 @@ export default function ServiceDetail() {
     setPowerLoading(action);
     // TODO: Appeler ton API pour l'action power
     await new Promise(resolve => setTimeout(resolve, 1500));
-    toast({
-      title: 'Action effectuée',
-      description: `Le serveur a été ${action === 'start' ? 'démarré' : action === 'stop' ? 'arrêté' : 'redémarré'}`,
-    });
+    toast.success(`Le serveur a été ${action === 'start' ? 'démarré' : action === 'stop' ? 'arrêté' : 'redémarré'}`);
     setPowerLoading(null);
+  };
+
+  const handleRename = () => {
+    if (newServiceName.trim()) {
+      toast.success(`Service renommé en "${newServiceName}"`);
+      setRenameDialogOpen(false);
+      setNewServiceName('');
+    }
+  };
+
+  const handleReinstall = () => {
+    toast.success('Réinstallation du système en cours...');
+    setReinstallDialogOpen(false);
+  };
+
+  const handleCancel = () => {
+    toast.error('Demande de résiliation envoyée');
+    setCancelDialogOpen(false);
   };
 
   if (authLoading) {
@@ -281,13 +340,416 @@ export default function ServiceDetail() {
                   <Terminal className="h-4 w-4 mr-2" />
                   Console
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Paramètres
-                </Button>
+                
+                {/* Menu Paramètres complet */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Paramètres
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72 bg-card border-border">
+                    {/* Power & Control */}
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Contrôle du serveur
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => handlePowerAction('start')}
+                    >
+                      <Power className="h-4 w-4 mr-2 text-green-500" />
+                      Démarrer le serveur
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => handlePowerAction('stop')}
+                    >
+                      <Square className="h-4 w-4 mr-2 text-orange-500" />
+                      Arrêter le serveur
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => handlePowerAction('restart')}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2 text-blue-500" />
+                      Redémarrer
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => setReinstallDialogOpen(true)}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2 text-purple-500" />
+                      Réinstaller l'OS
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Access */}
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Accès & Sécurité
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => copyToClipboard(service.primary_ip, 'IP')}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copier l'adresse IP
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Ouverture de la console VNC...')}
+                    >
+                      <Monitor className="h-4 w-4 mr-2" />
+                      Console VNC
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => setCredentialsDialogOpen(true)}
+                    >
+                      <Key className="h-4 w-4 mr-2" />
+                      Voir les identifiants
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Gestion des clés SSH...')}
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Clés SSH
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Configuration du firewall...')}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Règles Firewall
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Configuration */}
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Configuration
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => {
+                        setNewServiceName(service.label);
+                        setRenameDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Renommer le service
+                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="cursor-pointer">
+                        <Cpu className="h-4 w-4 mr-2" />
+                        Upgrade ressources
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="bg-card border-border w-56">
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Upgrade CPU disponible')}>
+                          <Cpu className="h-4 w-4 mr-2" />
+                          Ajouter des vCores
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Upgrade RAM disponible')}>
+                          <MemoryStick className="h-4 w-4 mr-2" />
+                          Ajouter de la RAM
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Upgrade stockage disponible')}>
+                          <HardDrive className="h-4 w-4 mr-2" />
+                          Ajouter du stockage
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Upgrade bande passante')}>
+                          <Network className="h-4 w-4 mr-2" />
+                          Upgrade bande passante
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="cursor-pointer">
+                        <Globe className="h-4 w-4 mr-2" />
+                        Réseau
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="bg-card border-border w-56">
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Configuration IPv4...')}>
+                          <Wifi className="h-4 w-4 mr-2" />
+                          Configurer IPv4
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Configuration IPv6...')}>
+                          <Wifi className="h-4 w-4 mr-2" />
+                          Configurer IPv6
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('Configuration rDNS...')}>
+                          <Globe className="h-4 w-4 mr-2" />
+                          Reverse DNS (PTR)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info('IP additionnelles...')}>
+                          <Network className="h-4 w-4 mr-2" />
+                          Ajouter des IPs
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Personnalisation du hostname...')}
+                    >
+                      <Server className="h-4 w-4 mr-2" />
+                      Changer le hostname
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Backups & Snapshots */}
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Sauvegardes
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.success('Snapshot créé avec succès')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Créer un snapshot
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Liste des snapshots...')}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Restaurer un snapshot
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Gestion des backups automatiques...')}
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      Backups automatiques
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Création d\'une image ISO...')}
+                    >
+                      <Image className="h-4 w-4 mr-2" />
+                      Créer une image ISO
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Monitoring & Notifications */}
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Monitoring
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Logs système...')}
+                    >
+                      <History className="h-4 w-4 mr-2" />
+                      Logs système
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Configuration des alertes...')}
+                    >
+                      <Bell className="h-4 w-4 mr-2" />
+                      Configurer les alertes
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Notifications email...')}
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Notifications email
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Billing */}
+                    <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Facturation
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Affichage des factures...')}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Voir les factures
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer"
+                      onClick={() => toast.info('Changement de cycle de facturation...')}
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Modifier la facturation
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                    
+                    {/* Danger Zone */}
+                    <DropdownMenuLabel className="text-xs text-destructive uppercase tracking-wider">
+                      Zone danger
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem 
+                      className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                      onClick={() => setCancelDialogOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Résilier le service
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </motion.div>
+
+          {/* Dialogs */}
+          {/* Rename Dialog */}
+          <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle>Renommer le service</DialogTitle>
+                <DialogDescription>
+                  Donnez un nom personnalisé à votre service pour le retrouver plus facilement.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Label htmlFor="serviceName">Nouveau nom</Label>
+                <Input
+                  id="serviceName"
+                  value={newServiceName}
+                  onChange={(e) => setNewServiceName(e.target.value)}
+                  placeholder="Ex: Serveur production"
+                  className="mt-2"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={handleRename}>
+                  Enregistrer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Reinstall Dialog */}
+          <Dialog open={reinstallDialogOpen} onOpenChange={setReinstallDialogOpen}>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                  Réinstaller le système
+                </DialogTitle>
+                <DialogDescription>
+                  Cette action va effacer toutes les données sur le serveur et réinstaller le système d'exploitation. Cette action est irréversible.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
+                <p className="text-sm text-orange-500 font-medium">
+                  ⚠️ Toutes vos données seront perdues. Assurez-vous d'avoir effectué une sauvegarde.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setReinstallDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button variant="destructive" onClick={handleReinstall}>
+                  Réinstaller
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Cancel Service Dialog */}
+          <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-destructive">
+                  <Trash2 className="h-5 w-5" />
+                  Résilier le service
+                </DialogTitle>
+                <DialogDescription>
+                  Êtes-vous sûr de vouloir résilier ce service ? Cette action prendra effet à la fin de votre période de facturation actuelle.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                <p className="text-sm text-destructive font-medium">
+                  Le service sera désactivé le {new Date(service.next_due_date).toLocaleDateString('fr-FR')}.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
+                  Conserver mon service
+                </Button>
+                <Button variant="destructive" onClick={handleCancel}>
+                  Confirmer la résiliation
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Credentials Dialog */}
+          <Dialog open={credentialsDialogOpen} onOpenChange={setCredentialsDialogOpen}>
+            <DialogContent className="bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Key className="h-5 w-5 text-primary" />
+                  Identifiants du serveur
+                </DialogTitle>
+                <DialogDescription>
+                  Conservez ces informations en lieu sûr.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <div className="bg-muted rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Adresse IP</span>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono">{service.primary_ip}</code>
+                      <button onClick={() => copyToClipboard(service.primary_ip, 'IP')} className="p-1 hover:bg-background rounded">
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Utilisateur</span>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono">root</code>
+                      <button onClick={() => copyToClipboard('root', 'Utilisateur')} className="p-1 hover:bg-background rounded">
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Mot de passe</span>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono">••••••••••••</code>
+                      <button onClick={() => copyToClipboard('xK9#mP2$vL5@nQ8', 'Mot de passe')} className="p-1 hover:bg-background rounded">
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Port SSH</span>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm font-mono">22</code>
+                      <button onClick={() => copyToClipboard('22', 'Port')} className="p-1 hover:bg-background rounded">
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  💡 Conseil : Changez votre mot de passe après la première connexion et configurez l'authentification par clé SSH.
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCredentialsDialogOpen(false)}>
+                  Fermer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Stats rapides */}
           <motion.div
