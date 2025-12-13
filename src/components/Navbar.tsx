@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, UserPlus, ChevronRight, LogIn } from "lucide-react";
+import { Menu, X, ChevronDown, UserPlus, ChevronRight, LogIn, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +26,7 @@ const navLinks = [
   { label: "VPS", href: "/vps" },
   { label: "VDS", href: "/vds" },
   { label: "Entreprise", href: "/entreprise" },
+  { label: "Anti-DDoS", href: "/anti-ddos" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -33,6 +34,7 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileGamesOpen, setMobileGamesOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
@@ -188,31 +190,88 @@ export const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden glass-dark border-t border-border/50"
+            className="lg:hidden glass-dark border-t border-border/50 overflow-hidden"
           >
-            <div className="container mx-auto px-4 py-6 space-y-4">
+            <div className="container mx-auto px-4 py-6 space-y-2">
               {navLinks.map((link) => (
-                isExternal(link.href) ? (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.label}
-                    to={link.href}
-                    className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                )
+                <div key={link.label}>
+                  {link.isGameDropdown ? (
+                    <>
+                      <button
+                        onClick={() => setMobileGamesOpen(!mobileGamesOpen)}
+                        className="flex items-center justify-between w-full py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <span>{link.label}</span>
+                        <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${mobileGamesOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      <AnimatePresence>
+                        {mobileGamesOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pl-4 pb-2 space-y-1 border-l-2 border-primary/30 ml-2">
+                              {gameItems.map((game) => (
+                                <Link
+                                  key={game.label}
+                                  to={game.href}
+                                  className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-primary/10 transition-colors"
+                                  onClick={() => {
+                                    setIsMobileMenuOpen(false);
+                                    setMobileGamesOpen(false);
+                                  }}
+                                >
+                                  <div>
+                                    <p className="text-sm font-medium text-foreground">{game.label}</p>
+                                    <p className="text-xs text-muted-foreground">À partir de {game.price}/mois</p>
+                                  </div>
+                                  {game.popular && (
+                                    <span className="text-[10px] font-medium bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                                      Populaire
+                                    </span>
+                                  )}
+                                </Link>
+                              ))}
+                              <Link
+                                to="/games"
+                                className="flex items-center gap-2 py-2.5 px-3 text-sm text-primary hover:text-primary/80 transition-colors"
+                                onClick={() => {
+                                  setIsMobileMenuOpen(false);
+                                  setMobileGamesOpen(false);
+                                }}
+                              >
+                                <span>Voir tous les jeux</span>
+                                <ChevronRight className="w-4 h-4" />
+                              </Link>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  ) : isExternal(link.href) ? (
+                    <a
+                      href={link.href}
+                      className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={link.href}
+                      className="block py-3 text-lg text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
+                </div>
               ))}
-              <div className="pt-4 space-y-3">
+              
+              {/* Mobile Auth Buttons */}
+              <div className="pt-6 mt-4 border-t border-border/30 space-y-3">
                 {isAuthenticated ? (
                   <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="glow" className="w-full">
@@ -220,20 +279,20 @@ export const Navbar = () => {
                     </Button>
                   </Link>
                 ) : (
-                  <>
+                  <div className="grid grid-cols-2 gap-3">
                     <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="glass" className="w-full gap-2">
+                      <Button variant="glass" className="w-full gap-2 text-sm">
                         <UserPlus className="w-4 h-4" />
-                        Créer un compte
+                        Inscription
                       </Button>
                     </Link>
                     <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="glow" className="w-full gap-2">
+                      <Button variant="glow" className="w-full gap-2 text-sm">
                         <LogIn className="w-4 h-4" />
                         Connexion
                       </Button>
                     </Link>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
