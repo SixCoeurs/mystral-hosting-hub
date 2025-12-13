@@ -53,7 +53,7 @@ const games: GameOption[] = [
 ];
 
 const locations = [
-  { id: "geneva", name: "Genève, Suisse", flag: "🇨🇭" },
+  { id: "geneva", name: "Genève", flag: "🇨🇭" },
 ];
 
 const osOptions = {
@@ -459,8 +459,8 @@ export default function Checkout() {
                           {plan.storage} Go NVMe
                         </li>
                         <li className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
-                          {plan.slots} joueurs
+                          <Cpu className="w-4 h-4" />
+                          {plan.cpu} vCores • Joueurs illimités
                         </li>
                       </ul>
                       <div className="font-display text-2xl font-bold gradient-text">
@@ -508,31 +508,32 @@ export default function Checkout() {
                 </div>
               </div>
               
-              {/* Slots Slider */}
+              {/* VCores Slider */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <Label className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    Nombre de joueurs
+                    <Cpu className="w-4 h-4 text-muted-foreground" />
+                    Nombre de vCores
                   </Label>
                   <div className="px-4 py-2 rounded-lg bg-primary/20 border border-primary/30">
-                    <span className="font-display text-xl font-bold text-primary">{gameSlots} slots</span>
+                    <span className="font-display text-xl font-bold text-primary">{gameSlots} vCores</span>
                   </div>
                 </div>
                 <Slider
                   value={[gameSlots]}
                   onValueChange={(value) => setGameSlots(value[0])}
                   min={2}
-                  max={200}
-                  step={2}
+                  max={16}
+                  step={1}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>2</span>
-                  <span>50</span>
-                  <span>100</span>
-                  <span>150</span>
-                  <span>200</span>
+                  <span>4</span>
+                  <span>8</span>
+                  <span>12</span>
+                  <span>16</span>
                 </div>
+                <p className="text-xs text-muted-foreground">Joueurs illimités inclus</p>
               </div>
               
               {/* Summary */}
@@ -546,8 +547,8 @@ export default function Checkout() {
                     <span className="font-medium">{gameRam} Go RAM</span>
                   </div>
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
-                    <User className="w-4 h-4 text-primary" />
-                    <span className="font-medium">{gameSlots} joueurs</span>
+                    <Cpu className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{gameSlots} vCores</span>
                   </div>
                 </div>
               </div>
@@ -663,7 +664,7 @@ export default function Checkout() {
                 osType === "linux" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
               }`}
             >
-              🐧 Linux
+              Linux
             </button>
             <button
               onClick={() => { setOsType("windows"); setSelectedOs("win-2022"); }}
@@ -671,7 +672,7 @@ export default function Checkout() {
                 osType === "windows" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
               }`}
             >
-              🪟 Windows
+              Windows
             </button>
           </div>
           
@@ -921,8 +922,8 @@ export default function Checkout() {
                       <span className="font-medium">{gameRam} Go</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border/50">
-                      <span className="text-muted-foreground">Slots joueurs</span>
-                      <span className="font-medium">{gameSlots}</span>
+                      <span className="text-muted-foreground">vCores</span>
+                      <span className="font-medium">{gameSlots} vCores • Joueurs illimités</span>
                     </div>
                   </>
                 ) : (
@@ -1028,7 +1029,7 @@ export default function Checkout() {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Puis {calculateTotal()}€/{billingPeriod === "monthly" ? "mois" : billingPeriod === "quarterly" ? "trimestre" : billingPeriod === "semiannual" ? "semestre" : "an"}
+                    Puis {(parseFloat(calculateTotal()) * getBillingMultiplier()).toFixed(2)}€/{billingPeriod === "monthly" ? "mois" : billingPeriod === "quarterly" ? "trimestre" : billingPeriod === "semiannual" ? "semestre" : "an"}
                   </p>
                 </div>
               </div>
