@@ -16,6 +16,22 @@ import {
   Check,
   X,
   ChevronDown,
+  Power,
+  RotateCcw,
+  RefreshCw,
+  Terminal,
+  Shield,
+  HardDrive,
+  Globe,
+  Key,
+  Trash2,
+  Copy,
+  FileText,
+  Download,
+  Upload,
+  Cpu,
+  MemoryStick,
+  Network,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,11 +40,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { api, Service } from '@/services/api';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { user, isLoading: authLoading, isAuthenticated, logout } = useAuth();
@@ -342,9 +364,218 @@ export default function Dashboard() {
                             Prochain renouvellement: {new Date(service.next_due_date).toLocaleDateString('fr-FR')}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                          Gérer
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="outline" size="sm">
+                              <Settings className="h-4 w-4 mr-2" />
+                              Gérer
+                              <ChevronDown className="h-4 w-4 ml-2" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-64 bg-card border-border" onClick={(e) => e.stopPropagation()}>
+                            {/* Power Controls */}
+                            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Contrôle serveur
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.success("Serveur démarré");
+                              }}
+                            >
+                              <Power className="h-4 w-4 mr-2 text-green-500" />
+                              Démarrer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.success("Serveur arrêté");
+                              }}
+                            >
+                              <Power className="h-4 w-4 mr-2 text-destructive" />
+                              Arrêter
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.success("Redémarrage en cours...");
+                              }}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-2 text-orange-500" />
+                              Redémarrer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.success("Réinstallation lancée");
+                              }}
+                            >
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Réinstaller l'OS
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            {/* Access */}
+                            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Accès
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                navigator.clipboard.writeText(service.primary_ip || '');
+                                toast.success("IP copiée dans le presse-papier");
+                              }}
+                            >
+                              <Copy className="h-4 w-4 mr-2" />
+                              Copier l'IP
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Console VNC en cours d'ouverture...");
+                              }}
+                            >
+                              <Terminal className="h-4 w-4 mr-2" />
+                              Console VNC
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Affichage des identifiants...");
+                              }}
+                            >
+                              <Key className="h-4 w-4 mr-2" />
+                              Voir les identifiants
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            {/* Configuration */}
+                            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Configuration
+                            </DropdownMenuLabel>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="cursor-pointer">
+                                <Cpu className="h-4 w-4 mr-2" />
+                                Ressources
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent className="bg-card border-border">
+                                <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Upgrade CPU")}>
+                                  <Cpu className="h-4 w-4 mr-2" />
+                                  Upgrade CPU
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Upgrade RAM")}>
+                                  <MemoryStick className="h-4 w-4 mr-2" />
+                                  Upgrade RAM
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Upgrade Stockage")}>
+                                  <HardDrive className="h-4 w-4 mr-2" />
+                                  Upgrade Stockage
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Upgrade Bande passante")}>
+                                  <Network className="h-4 w-4 mr-2" />
+                                  Upgrade Bande passante
+                                </DropdownMenuItem>
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Configuration réseau...");
+                              }}
+                            >
+                              <Globe className="h-4 w-4 mr-2" />
+                              Paramètres réseau
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Configuration firewall...");
+                              }}
+                            >
+                              <Shield className="h-4 w-4 mr-2" />
+                              Firewall
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => startEditing(service, {} as React.MouseEvent)}
+                            >
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Renommer le service
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            {/* Backup & Snapshots */}
+                            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Sauvegardes
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.success("Snapshot créé");
+                              }}
+                            >
+                              <Download className="h-4 w-4 mr-2" />
+                              Créer un snapshot
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Liste des snapshots...");
+                              }}
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Restaurer un snapshot
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Téléchargement de la sauvegarde...");
+                              }}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Télécharger backup
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            {/* Billing */}
+                            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                              Facturation
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => navigate(`/service/${service.id}`)}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Voir les détails
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="cursor-pointer"
+                              onClick={() => {
+                                toast.info("Affichage des factures...");
+                              }}
+                            >
+                              <CreditCard className="h-4 w-4 mr-2" />
+                              Factures
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            {/* Danger Zone */}
+                            <DropdownMenuItem 
+                              className="cursor-pointer text-destructive focus:text-destructive"
+                              onClick={() => {
+                                toast.error("Demande de résiliation envoyée");
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Résilier le service
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   </motion.div>
