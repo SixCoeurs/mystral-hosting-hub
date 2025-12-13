@@ -195,25 +195,32 @@ router.post('/register', async (req, res) => {
     // Generate UUID
     const uuid = uuidv4();
 
-    // Create user in transaction
-    const result = await transaction(async (conn) => {
-      // Insert user
-      const insertResult = await conn.query(
+    // Create user
+    let userId;
+    try {
+      const insertResult = await query(
         `INSERT INTO users (uuid, email, password_hash, first_name, last_name, phone, company_name, status)
          VALUES (?, ?, ?, ?, ?, ?, ?, 'active')`,
         [uuid, email.toLowerCase().trim(), passwordHash, first_name.trim(), last_name.trim(), phone || null, company_name || null]
       );
+      userId = insertResult.insertId;
+      console.log('User created with ID:', userId);
 
-      const userId = insertResult.insertId;
+      // Try to initialize user credits (optional - may not exist in all DB setups)
+      try {
+        await query(
+          'INSERT INTO user_credits (user_id, balance) VALUES (?, 0)',
+          [userId]
+        );
+      } catch (creditErr) {
+        console.log('Note: user_credits table may not exist, skipping:', creditErr.message);
+      }
+    } catch (insertErr) {
+      console.error('User insert error:', insertErr);
+      throw insertErr;
+    }
 
-      // Initialize user credits
-      await conn.query(
-        'INSERT INTO user_credits (user_id, balance) VALUES (?, 0)',
-        [userId]
-      );
-
-      return userId;
-    });
+    const result = userId;
 
     // Fetch created user
     const users = await query(
@@ -239,10 +246,13 @@ router.post('/register', async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error('Registration error:', err);
+    console.error('Registration error:', err.message);
+    console.error('Full error:', err);
     res.status(500).json({
       success: false,
-      message: 'Erreur serveur lors de l\'inscription',
+      message: process.env.NODE_ENV === 'development'
+        ? `Erreur: ${err.message}`
+        : 'Erreur serveur lors de l\'inscription',
     });
   }
 });
