@@ -318,10 +318,43 @@ export const api = {
 
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Return empty array for new users
+    // Mock service for demo
+    const mockServices: Service[] = [
+      {
+        id: 1,
+        uuid: 'srv_12345',
+        hostname: 'prod-server-01',
+        label: 'Production Server',
+        status: 'active',
+        product_name: 'VDS GAME 3',
+        category_name: 'VDS',
+        location_name: 'Paris, FR',
+        primary_ip: '185.234.72.156',
+        billing_cycle: 'monthly',
+        billing_amount: 53.99,
+        next_due_date: '2025-01-13',
+        current_specs: {},
+      },
+      {
+        id: 2,
+        uuid: 'srv_67890',
+        hostname: 'minecraft-srv',
+        label: 'Serveur Minecraft',
+        status: 'active',
+        product_name: 'Minecraft Essential',
+        category_name: 'Game Server',
+        location_name: 'Paris, FR',
+        primary_ip: '185.234.72.157',
+        billing_cycle: 'monthly',
+        billing_amount: 9.99,
+        next_due_date: '2025-01-20',
+        current_specs: {},
+      },
+    ];
+    
     return {
       success: true,
-      services: [],
+      services: mockServices,
     };
   },
 
