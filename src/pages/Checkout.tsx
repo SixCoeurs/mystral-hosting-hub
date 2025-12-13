@@ -53,7 +53,7 @@ const games: GameOption[] = [
 ];
 
 const locations = [
-  { id: "geneva", name: "Genève", flag: "🇨🇭" },
+  { id: "geneva", name: "Genève" },
 ];
 
 const osOptions = {
@@ -235,10 +235,11 @@ export default function Checkout() {
       const plan = plans.find(p => p.id === selectedPlan);
       if (plan) return plan.price.toFixed(2);
     }
-    const basePrice = 2;
-    const ramPrice = gameRam * 1.5;
-    const slotPrice = gameSlots * 0.1;
-    return (basePrice + ramPrice + slotPrice).toFixed(2);
+    // Custom config pricing - vCore based
+    const basePrice = 4.99;
+    const ramPrice = gameRam * 0.75;
+    const vcorePrice = gameSlots * 2.5;
+    return (basePrice + ramPrice + vcorePrice).toFixed(2);
   };
   
   const calculateTotal = () => {
@@ -645,7 +646,7 @@ export default function Checkout() {
               }`}
             >
               <RadioGroupItem value={location.id} id={location.id} className="sr-only" />
-              <span className="text-2xl">{location.flag}</span>
+              <Globe className="w-5 h-5 text-primary" />
               <span className="font-medium text-sm">{location.name}</span>
             </Label>
           ))}
@@ -947,7 +948,7 @@ export default function Checkout() {
                 
                 <div className="flex justify-between py-2 border-b border-border/50">
                   <span className="text-muted-foreground">Localisation</span>
-                  <span className="font-medium">{selectedLocationData?.flag} {selectedLocationData?.name}</span>
+                  <span className="font-medium">{selectedLocationData?.name}</span>
                 </div>
                 
                 <div className="flex justify-between py-2 border-b border-border/50">

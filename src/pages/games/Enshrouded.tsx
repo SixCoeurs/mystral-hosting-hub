@@ -2,9 +2,9 @@ import { GamePageTemplate } from "./GamePageTemplate";
 import enshroudedHero from "@/assets/games/heroes/enshrouded-hero.jpg";
 
 const plans = [
-  { name: "Duo", slots: "4", ram: "8 GB", cpu: "4 vCores", storage: "30 GB", price: "9,99€" },
-  { name: "Squad", slots: "8", ram: "16 GB", cpu: "6 vCores", storage: "50 GB", price: "17,99€", popular: true },
-  { name: "Clan", slots: "16", ram: "24 GB", cpu: "8 vCores", storage: "80 GB", price: "27,99€" },
+  { name: "Duo", vcores: "4", ram: "8 GB", cpu: "4 vCores", storage: "30 GB", price: "9,99€" },
+  { name: "Squad", vcores: "6", ram: "16 GB", cpu: "6 vCores", storage: "50 GB", price: "17,99€", popular: true },
+  { name: "Clan", vcores: "8", ram: "24 GB", cpu: "8 vCores", storage: "80 GB", price: "27,99€" },
 ];
 
 const EnshroudedPage = () => {
