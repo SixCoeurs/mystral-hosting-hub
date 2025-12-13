@@ -6,6 +6,8 @@
   "packageManager": "bun@1.3.4",
   "scripts": {
     "dev": "vite",
+    "dev:api": "bun run --cwd server src/index.js",
+    "dev:all": "bun run dev:api & bun run dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
