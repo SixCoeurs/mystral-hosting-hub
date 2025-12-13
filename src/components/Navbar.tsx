@@ -26,7 +26,6 @@ const navLinks = [
   { label: "VPS", href: "/vps" },
   { label: "VDS", href: "/vds" },
   { label: "Entreprise", href: "/entreprise" },
-  { label: "Anti-DDoS", href: "/anti-ddos" },
   { label: "Contact", href: "/contact" },
 ];
 

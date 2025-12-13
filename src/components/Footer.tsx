@@ -1,25 +1,25 @@
 import { motion } from "framer-motion";
 import { Server, Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const footerLinks = {
   services: [
-    { label: "Serveurs de Jeux", href: "#" },
-    { label: "VPS Gaming", href: "#" },
-    { label: "Serveurs Dédiés", href: "#" },
-    { label: "Protection DDoS", href: "#" },
+    { label: "Serveurs de Jeux", href: "/games" },
+    { label: "VPS", href: "/vps" },
+    { label: "VDS", href: "/vds" },
+    { label: "Entreprise", href: "/entreprise" },
   ],
   games: [
-    { label: "Minecraft", href: "#" },
-    { label: "Rust", href: "#" },
-    { label: "ARK", href: "#" },
-    { label: "FiveM", href: "#" },
-    { label: "Palworld", href: "#" },
+    { label: "Minecraft", href: "/games/minecraft" },
+    { label: "Rust", href: "/games/rust" },
+    { label: "ARK", href: "/games/ark" },
+    { label: "FiveM", href: "/games/fivem" },
+    { label: "Palworld", href: "/games/palworld" },
   ],
   support: [
-    { label: "Centre d'aide", href: "#" },
-    { label: "Documentation", href: "#" },
+    { label: "Contact", href: "/contact" },
+    { label: "Protection Anti-DDoS", href: "/anti-ddos" },
     { label: "Status des serveurs", href: "#" },
-    { label: "Discord", href: "#" },
   ],
   legal: [
     { label: "Mentions légales", href: "#" },
@@ -74,9 +74,9 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.services.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -88,9 +88,9 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.games.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -102,9 +102,15 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    {link.label}
-                  </a>
+                  {link.href.startsWith('#') ? (
+                    <a href={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
