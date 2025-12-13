@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Building, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,9 @@ export default function Register() {
   const { register } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -93,7 +96,7 @@ export default function Register() {
           title: 'Compte créé',
           description: result.message || 'Votre compte a été créé avec succès',
         });
-        navigate('/dashboard');
+        navigate(redirectUrl);
       } else {
         toast({
           title: 'Erreur',
@@ -349,7 +352,7 @@ export default function Register() {
               {/* Login link */}
               <div className="mt-6 text-center text-muted-foreground">
                 Déjà un compte ?{' '}
-                <Link to="/login" className="text-primary hover:text-accent font-medium">
+                <Link to={`/login${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-primary hover:text-accent font-medium">
                   Se connecter
                 </Link>
               </div>
