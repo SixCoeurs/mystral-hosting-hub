@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,9 @@ export default function Login() {
   const { login } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  const redirectUrl = searchParams.get('redirect') || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +44,7 @@ export default function Login() {
           title: 'Connexion réussie',
           description: 'Bienvenue sur votre espace client',
         });
-        navigate('/dashboard');
+        navigate(redirectUrl);
       } else {
         toast({
           title: 'Erreur de connexion',
@@ -165,7 +168,7 @@ export default function Login() {
               </div>
 
               {/* Register link */}
-              <Link to="/register">
+              <Link to={`/register${redirectUrl !== '/dashboard' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}>
                 <Button
                   variant="outline"
                   className="w-full h-12 text-base font-semibold border-primary/50 hover:bg-primary/10 hover:border-primary"

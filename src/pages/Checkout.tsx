@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Server, 
@@ -20,7 +21,9 @@ import {
   MapPin,
   Phone,
   Building,
-  FileText
+  FileText,
+  LogIn,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -145,6 +148,8 @@ const addons = [
 export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   
   const [step, setStep] = useState<Step>(1);
   const [serviceType, setServiceType] = useState<ServiceType | null>(null);
@@ -668,12 +673,12 @@ export default function Checkout() {
               Linux
             </button>
             <button
-              onClick={() => { setOsType("windows"); setSelectedOs("win-2022"); }}
-              className={`px-6 py-3 rounded-lg border-2 transition-all ${
-                osType === "windows" ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-              }`}
+              disabled
+              className="px-6 py-3 rounded-lg border-2 transition-all border-border bg-muted/30 text-muted-foreground cursor-not-allowed opacity-50"
+              title="Bientôt disponible"
             >
               Windows
+              <span className="ml-2 text-xs">(Bientôt)</span>
             </button>
           </div>
           
@@ -883,6 +888,82 @@ export default function Checkout() {
     const selectedLocationData = locations.find(l => l.id === selectedLocation);
     const selectedOsData = [...osOptions.linux, ...osOptions.windows].find(o => o.id === selectedOs);
     const selectedBillingData = billingPeriods.find(p => p.id === billingPeriod);
+    
+    // Build return URL with current params
+    const currentUrl = `${location.pathname}${location.search}`;
+    const loginUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`;
+    const registerUrl = `/register?redirect=${encodeURIComponent(currentUrl)}`;
+    
+    // Show auth required overlay if not logged in
+    if (!authLoading && !isAuthenticated) {
+      return (
+        <div className="space-y-8 relative">
+          <div>
+            <h2 className="font-display text-2xl font-bold mb-2">Récapitulatif & Paiement</h2>
+            <p className="text-muted-foreground">Vérifiez votre commande avant de procéder au paiement</p>
+          </div>
+          
+          {/* Blurred background preview */}
+          <div className="blur-sm pointer-events-none opacity-50">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="p-6 rounded-xl bg-card border border-border h-64" />
+                <div className="p-6 rounded-xl bg-card border border-border h-40" />
+              </div>
+              <div className="lg:col-span-1">
+                <div className="p-6 rounded-xl bg-gradient-to-b from-primary/10 to-card border border-primary/30 h-80" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Auth required overlay */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-8 rounded-2xl bg-card border border-border shadow-2xl max-w-md w-full mx-4 text-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
+                <LogIn className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="font-display text-xl font-bold mb-2">Connexion requise</h3>
+              <p className="text-muted-foreground mb-6">
+                Pour finaliser votre commande, veuillez vous connecter ou créer un compte.
+              </p>
+              
+              <div className="space-y-3">
+                <Button asChild variant="glow" className="w-full" size="lg">
+                  <Link to={loginUrl}>
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Se connecter
+                  </Link>
+                </Button>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border/50"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                  </div>
+                </div>
+                
+                <Button asChild variant="outline" className="w-full" size="lg">
+                  <Link to={registerUrl}>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Créer un compte
+                  </Link>
+                </Button>
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-4">
+                Votre panier sera conservé après la connexion
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div className="space-y-8">
