@@ -11,6 +11,7 @@ const FiveMPage = () => {
   return (
     <GamePageTemplate
       name="FiveM"
+      gameId="fivem"
       description="Créez votre serveur roleplay GTA V ultime. Framework ESX/QBCore pré-configurés, ressources illimitées."
       heroVideo={fivemHeroVideo}
       accentColor="#F49B0B"

@@ -180,6 +180,7 @@ const VPSPage = () => {
             subtitle="Parfait pour les tests, bots & petits projets"
             plans={starterPlans}
             columns={4}
+            serviceType="vps"
           />
           
           <PricingSection
@@ -187,6 +188,7 @@ const VPSPage = () => {
             subtitle="Pour les entreprises & applications en croissance"
             plans={professionalPlans}
             columns={4}
+            serviceType="vps"
           />
           
           <PricingSection
@@ -194,6 +196,7 @@ const VPSPage = () => {
             subtitle="Puissance maximale pour applications exigeantes"
             plans={enterprisePlans}
             columns={2}
+            serviceType="vps"
           />
         </div>
       </section>
