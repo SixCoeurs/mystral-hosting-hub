@@ -11,7 +11,7 @@ import arkImg from "@/assets/games/ark.jpg";
 import fivemImg from "@/assets/games/fivem.jpg";
 import palworldImg from "@/assets/games/palworld.jpg";
 import enshroudedImg from "@/assets/games/enshrouded.jpg";
-import theisleImg from "@/assets/games/theisle.jpg";
+import gmodImg from "@/assets/games/gmod.jpg";
 import dayzImg from "@/assets/games/dayz.jpg";
 
 const games = [
@@ -70,12 +70,12 @@ const games = [
     popular: false 
   },
   { 
-    name: "The Isle", 
-    slug: "theisle",
-    image: theisleImg, 
-    price: "7,99€", 
-    description: "Incarnez des dinosaures réalistes",
-    players: "Jusqu'à 200",
+    name: "Garry's Mod", 
+    slug: "gmod",
+    image: gmodImg, 
+    price: "5,99€", 
+    description: "Sandbox ultime avec des milliers d'addons",
+    players: "Jusqu'à 64",
     popular: false 
   },
   { 
