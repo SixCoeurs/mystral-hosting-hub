@@ -254,9 +254,11 @@ export default function Dashboard() {
                             Prochain renouvellement: {new Date(service.next_due_date).toLocaleDateString('fr-FR')}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Gérer
-                        </Button>
+                        <Link to={`/service/${service.id}`}>
+                          <Button variant="outline" size="sm">
+                            Gérer
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </motion.div>
