@@ -42,21 +42,18 @@ interface GameOption {
 }
 
 const games: GameOption[] = [
-  { id: "minecraft", name: "Minecraft", icon: "⛏️" },
-  { id: "rust", name: "Rust", icon: "🔫" },
-  { id: "ark", name: "ARK", icon: "🦖" },
-  { id: "fivem", name: "FiveM", icon: "🚗" },
-  { id: "palworld", name: "Palworld", icon: "🐾" },
-  { id: "enshrouded", name: "Enshrouded", icon: "⚔️" },
-  { id: "gmod", name: "Garry's Mod", icon: "🔧" },
-  { id: "dayz", name: "DayZ", icon: "🧟" },
+  { id: "minecraft", name: "Minecraft", icon: "" },
+  { id: "rust", name: "Rust", icon: "" },
+  { id: "ark", name: "ARK", icon: "" },
+  { id: "fivem", name: "FiveM", icon: "" },
+  { id: "palworld", name: "Palworld", icon: "" },
+  { id: "enshrouded", name: "Enshrouded", icon: "" },
+  { id: "gmod", name: "Garry's Mod", icon: "" },
+  { id: "dayz", name: "DayZ", icon: "" },
 ];
 
 const locations = [
-  { id: "paris", name: "Paris, France", flag: "🇫🇷" },
-  { id: "frankfurt", name: "Francfort, Allemagne", flag: "🇩🇪" },
-  { id: "london", name: "Londres, UK", flag: "🇬🇧" },
-  { id: "amsterdam", name: "Amsterdam, Pays-Bas", flag: "🇳🇱" },
+  { id: "geneva", name: "Genève, Suisse", flag: "🇨🇭" },
 ];
 
 const osOptions = {
@@ -142,9 +139,7 @@ const gamePlans: Record<string, { id: string; name: string; slots: number; ram: 
 };
 
 const addons = [
-  { id: "backup", name: "Sauvegarde automatique", description: "Sauvegardes quotidiennes avec 7 jours de rétention", price: 4.99, icon: HardDrive },
-  { id: "ddos", name: "Protection DDoS avancée", description: "Protection jusqu'à 1Tbps", price: 9.99, icon: Shield },
-  { id: "support", name: "Support prioritaire", description: "Temps de réponse < 1h garanti", price: 14.99, icon: User },
+  { id: "ddos", name: "Protection Anti-DDoS", description: "Protection avancée jusqu'à 1Tbps contre les attaques DDoS", price: 9.99, icon: Shield },
 ];
 
 export default function Checkout() {
@@ -157,7 +152,7 @@ export default function Checkout() {
   // Configuration
   const [selectedGame, setSelectedGame] = useState<string>("");
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [selectedLocation, setSelectedLocation] = useState<string>("paris");
+  const [selectedLocation, setSelectedLocation] = useState<string>("geneva");
   const [osType, setOsType] = useState<"linux" | "windows">("linux");
   const [selectedOs, setSelectedOs] = useState<string>("ubuntu-22");
   const [serverName, setServerName] = useState<string>("");
@@ -363,7 +358,7 @@ export default function Checkout() {
                     : "border-border hover:border-primary/50 bg-card"
                 }`}
               >
-                <span className="text-2xl mb-2 block">{game.icon}</span>
+                <Gamepad2 className={`w-6 h-6 mx-auto mb-2 ${selectedGame === game.id ? "text-primary" : "text-muted-foreground"}`} />
                 <span className="font-medium">{game.name}</span>
               </button>
             ))}
@@ -394,20 +389,38 @@ export default function Checkout() {
             />
           </div>
           
-          {/* Predefined Plans */}
+          {/* Config Type Toggle */}
           {getGamePlans().length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Choisissez une offre</Label>
-                <button 
-                  onClick={() => {
-                    setIsCustomConfig(!isCustomConfig);
-                    if (!isCustomConfig) setSelectedPlan("");
-                  }}
-                  className="text-sm text-primary hover:underline"
-                >
-                  {isCustomConfig ? "Voir les offres prédéfinies" : "Configuration personnalisée"}
-                </button>
+            <div className="space-y-6">
+              <div className="flex flex-col gap-3">
+                <Label className="text-lg">Type de configuration</Label>
+                <div className="flex rounded-xl border-2 border-border overflow-hidden max-w-md">
+                  <button 
+                    onClick={() => {
+                      setIsCustomConfig(false);
+                    }}
+                    className={`flex-1 px-6 py-3 text-sm font-medium transition-all ${
+                      !isCustomConfig 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-card hover:bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    Offres prédéfinies
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsCustomConfig(true);
+                      setSelectedPlan("");
+                    }}
+                    className={`flex-1 px-6 py-3 text-sm font-medium transition-all ${
+                      isCustomConfig 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-card hover:bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    Configuration sur mesure
+                  </button>
+                </div>
               </div>
               
               {!isCustomConfig && (
@@ -462,12 +475,22 @@ export default function Checkout() {
           
           {/* Custom Configuration */}
           {isCustomConfig && (
-            <>
+            <div className="space-y-6 p-6 rounded-xl border-2 border-border bg-card/50 max-w-2xl">
+              <h4 className="font-display font-bold text-lg flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-primary" />
+                Configuration personnalisée
+              </h4>
+              
               {/* RAM Slider */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <Label>Mémoire RAM</Label>
-                  <span className="font-display text-xl font-bold text-primary">{gameRam} Go</span>
+                  <Label className="flex items-center gap-2">
+                    <MemoryStick className="w-4 h-4 text-muted-foreground" />
+                    Mémoire RAM
+                  </Label>
+                  <div className="px-4 py-2 rounded-lg bg-primary/20 border border-primary/30">
+                    <span className="font-display text-xl font-bold text-primary">{gameRam} Go</span>
+                  </div>
                 </div>
                 <Slider
                   value={[gameRam]}
@@ -475,10 +498,12 @@ export default function Checkout() {
                   min={2}
                   max={32}
                   step={2}
-                  className="max-w-xl"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground max-w-xl">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>2 Go</span>
+                  <span>8 Go</span>
+                  <span>16 Go</span>
+                  <span>24 Go</span>
                   <span>32 Go</span>
                 </div>
               </div>
@@ -486,8 +511,13 @@ export default function Checkout() {
               {/* Slots Slider */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <Label>Nombre de joueurs</Label>
-                  <span className="font-display text-xl font-bold text-primary">{gameSlots} slots</span>
+                  <Label className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    Nombre de joueurs
+                  </Label>
+                  <div className="px-4 py-2 rounded-lg bg-primary/20 border border-primary/30">
+                    <span className="font-display text-xl font-bold text-primary">{gameSlots} slots</span>
+                  </div>
                 </div>
                 <Slider
                   value={[gameSlots]}
@@ -495,14 +525,33 @@ export default function Checkout() {
                   min={2}
                   max={200}
                   step={2}
-                  className="max-w-xl"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground max-w-xl">
-                  <span>2 slots</span>
-                  <span>200 slots</span>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>2</span>
+                  <span>50</span>
+                  <span>100</span>
+                  <span>150</span>
+                  <span>200</span>
                 </div>
               </div>
-            </>
+              
+              {/* Summary */}
+              <div className="pt-4 border-t border-border">
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                  <span>Résumé de la configuration</span>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+                    <MemoryStick className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{gameRam} Go RAM</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+                    <User className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{gameSlots} joueurs</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           
           {/* Price Preview */}
