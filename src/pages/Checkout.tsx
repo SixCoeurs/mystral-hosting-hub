@@ -84,10 +84,19 @@ const billingPeriods = [
 ];
 
 const vpsPlans = [
-  { id: "starter", name: "Starter", cpu: 2, ram: 4, storage: 50, bandwidth: "Illimité", price: 9.99 },
-  { id: "pro", name: "Pro", cpu: 4, ram: 8, storage: 100, bandwidth: "Illimité", price: 19.99 },
-  { id: "business", name: "Business", cpu: 6, ram: 16, storage: 200, bandwidth: "Illimité", price: 39.99 },
-  { id: "enterprise", name: "Enterprise", cpu: 8, ram: 32, storage: 400, bandwidth: "Illimité", price: 79.99 },
+  // Starter Plans
+  { id: "nano", name: "Nano", cpu: 1, ram: 0.5, storage: 5, bandwidth: "100Mbps", price: 0.99 },
+  { id: "starter-1", name: "Starter 1", cpu: 1, ram: 1, storage: 20, bandwidth: "1Gbps", price: 2.49 },
+  { id: "starter-2", name: "Starter 2", cpu: 1, ram: 2, storage: 30, bandwidth: "1Gbps", price: 3.99 },
+  { id: "starter-3", name: "Starter 3", cpu: 2, ram: 3, storage: 40, bandwidth: "1Gbps", price: 4.99 },
+  // Professional Plans
+  { id: "essential", name: "Essential", cpu: 2, ram: 4, storage: 60, bandwidth: "5Gbps", price: 5.99 },
+  { id: "advanced", name: "Advanced", cpu: 4, ram: 8, storage: 120, bandwidth: "5Gbps", price: 9.99 },
+  { id: "business", name: "Business", cpu: 6, ram: 12, storage: 180, bandwidth: "5Gbps", price: 15.99 },
+  { id: "growth", name: "Growth", cpu: 8, ram: 16, storage: 240, bandwidth: "5Gbps", price: 20.99 },
+  // Enterprise Plans
+  { id: "enterprise", name: "Enterprise", cpu: 10, ram: 20, storage: 300, bandwidth: "5Gbps", price: 23.99 },
+  { id: "performance", name: "Performance", cpu: 12, ram: 24, storage: 300, bandwidth: "5Gbps", price: 25.99 },
 ];
 
 const vdsPlans = [
@@ -189,17 +198,29 @@ export default function Checkout() {
     const plan = searchParams.get("plan");
     const ram = searchParams.get("ram");
     const slots = searchParams.get("slots");
+    const urlLocation = searchParams.get("location");
+    const urlOs = searchParams.get("os");
+    const urlOsType = searchParams.get("osType");
+    const urlName = searchParams.get("name");
+    const urlBilling = searchParams.get("billing");
+    const urlAddons = searchParams.get("addons");
+    const urlStep = searchParams.get("step");
+    const urlCustomConfig = searchParams.get("customConfig");
     
     if (type) {
       setServiceType(type);
       if (type === "game" && game) {
         setSelectedGame(game);
-        if (ram && slots) {
+        if (urlCustomConfig === 'true' && ram && slots) {
+          // Custom config from URL
+          setIsCustomConfig(true);
+          setGameRam(parseInt(ram));
+          setGameSlots(parseInt(slots));
+        } else if (ram && slots) {
           // Custom config from game page
           setIsCustomConfig(true);
           setGameRam(parseInt(ram));
           setGameSlots(parseInt(slots));
-          setStep(2);
         } else if (plan) {
           // Predefined plan from game page
           const gameSpecificPlans = gamePlans[game] || [];
@@ -212,11 +233,36 @@ export default function Checkout() {
             setGameRam(matchedPlan.ram);
             setGameSlots(matchedPlan.slots);
           }
-          setStep(2);
         }
-      } else if (type !== "game") {
+      } else if (type !== "game" && plan) {
+        // Match plan by id or name for VPS/VDS
+        const plans = type === "vps" ? vpsPlans : vdsPlans;
+        const matchedPlan = plans.find(p => 
+          p.id === plan.toLowerCase().replace(/[^a-z0-9-]/g, '-') || 
+          p.name.toLowerCase() === plan.toLowerCase() ||
+          p.id === plan
+        );
+        if (matchedPlan) {
+          setSelectedPlan(matchedPlan.id);
+        }
+      }
+      
+      // Restore other config from URL
+      if (urlLocation) setSelectedLocation(urlLocation);
+      if (urlOs) setSelectedOs(urlOs);
+      if (urlOsType === "linux" || urlOsType === "windows") setOsType(urlOsType);
+      if (urlName) setServerName(urlName);
+      if (urlBilling) setBillingPeriod(urlBilling);
+      if (urlAddons) setSelectedAddons(urlAddons.split(','));
+      
+      // Set step based on URL or default based on type
+      if (urlStep) {
+        const stepNum = parseInt(urlStep);
+        if (stepNum >= 1 && stepNum <= 5) {
+          setStep(stepNum as Step);
+        }
+      } else if (type !== "game" || game) {
         setStep(2);
-        if (plan) setSelectedPlan(plan);
       }
     }
   }, [searchParams]);
@@ -889,8 +935,28 @@ export default function Checkout() {
     const selectedOsData = [...osOptions.linux, ...osOptions.windows].find(o => o.id === selectedOs);
     const selectedBillingData = billingPeriods.find(p => p.id === billingPeriod);
     
-    // Build return URL with current params
-    const currentUrl = `${location.pathname}${location.search}`;
+    // Build return URL with ALL current config params
+    const buildConfigUrl = () => {
+      const params = new URLSearchParams();
+      if (serviceType) params.set('type', serviceType);
+      if (selectedGame) params.set('game', selectedGame);
+      if (selectedPlan) params.set('plan', selectedPlan);
+      if (selectedLocation) params.set('location', selectedLocation);
+      if (selectedOs) params.set('os', selectedOs);
+      if (serverName) params.set('name', serverName);
+      if (billingPeriod) params.set('billing', billingPeriod);
+      if (osType) params.set('osType', osType);
+      if (selectedAddons.length > 0) params.set('addons', selectedAddons.join(','));
+      if (isCustomConfig) {
+        params.set('customConfig', 'true');
+        params.set('ram', gameRam.toString());
+        params.set('slots', gameSlots.toString());
+      }
+      params.set('step', '5');
+      return `${location.pathname}?${params.toString()}`;
+    };
+    
+    const currentUrl = buildConfigUrl();
     const loginUrl = `/login?redirect=${encodeURIComponent(currentUrl)}`;
     const registerUrl = `/register?redirect=${encodeURIComponent(currentUrl)}`;
     
