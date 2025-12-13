@@ -3,7 +3,7 @@
 // Replace API_BASE_URL with your actual API endpoint
 // ============================================================
 
-const API_BASE_URL = 'http://localhost:3001/api'; // Change this to your API URL
+const API_BASE_URL = 'http://163.5.107.42:3001/api';
 
 // Types based on your MariaDB schema
 export interface User {
