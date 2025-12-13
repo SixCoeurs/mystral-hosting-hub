@@ -66,8 +66,8 @@ async function startServer() {
     console.error('⚠️  Warning: Database connection failed. Server will start but some features may not work.');
   }
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Mystral API Server running on http://localhost:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Mystral API Server running on http://0.0.0.0:${PORT}`);
     console.log(`📚 API endpoints available at http://localhost:${PORT}/api`);
   });
 }
