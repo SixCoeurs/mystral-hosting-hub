@@ -26,7 +26,7 @@ const navLinks = [
   { label: "VPS", href: "/vps" },
   { label: "VDS", href: "/vds" },
   { label: "Entreprise", href: "/entreprise" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const Navbar = () => {
