@@ -11,7 +11,7 @@ const gameItems = [
   { label: "FiveM", href: "/games/fivem", price: "14,99€", popular: true },
   { label: "Palworld", href: "/games/palworld", price: "9,99€", popular: false },
   { label: "Enshrouded", href: "/games/enshrouded", price: "9,99€", popular: false },
-  { label: "The Isle", href: "/games/theisle", price: "7,99€", popular: false },
+  { label: "Garry's Mod", href: "/games/gmod", price: "5,99€", popular: false },
   { label: "DayZ", href: "/games/dayz", price: "9,99€", popular: false },
 ];
 

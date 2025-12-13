@@ -15,7 +15,7 @@ import ArkPage from "./pages/games/Ark";
 import FiveMPage from "./pages/games/FiveM";
 import PalworldPage from "./pages/games/Palworld";
 import EnshroudedPage from "./pages/games/Enshrouded";
-import TheIslePage from "./pages/games/TheIsle";
+import GmodPage from "./pages/games/Gmod";
 import DayZPage from "./pages/games/DayZ";
 import NotFound from "./pages/NotFound";
 
@@ -39,7 +39,7 @@ const App = () => (
           <Route path="/games/fivem" element={<FiveMPage />} />
           <Route path="/games/palworld" element={<PalworldPage />} />
           <Route path="/games/enshrouded" element={<EnshroudedPage />} />
-          <Route path="/games/theisle" element={<TheIslePage />} />
+          <Route path="/games/gmod" element={<GmodPage />} />
           <Route path="/games/dayz" element={<DayZPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
