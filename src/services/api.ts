@@ -164,41 +164,40 @@ export const api = {
   },
 
   async login(data: LoginData): Promise<AuthResponse> {
-    // TODO: Replace with real API call
-    // const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data),
-    // });
-    // return response.json();
-
-    // Mock implementation
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Simulate validation
+    // Validation
     if (!data.email || !data.password) {
       return { success: false, message: 'Email et mot de passe requis' };
     }
-    
-    // Test credentials: test / test
-    if (data.email !== 'test' && data.password !== 'test') {
-      // For demo: also accept any valid email/password combo
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.user && result.token) {
+        storeSession(result.user, result.token);
+        return {
+          success: true,
+          message: 'Connexion réussie',
+          user: result.user,
+          token: result.token,
+        };
+      }
+      
+      return { 
+        success: false, 
+        message: result.message || 'Identifiants incorrects' 
+      };
+    } catch {
+      return { 
+        success: false, 
+        message: 'Identifiants incorrects' 
+      };
     }
-    const user: User = {
-      ...mockUser,
-      email: data.email,
-      last_login_at: new Date().toISOString(),
-    };
-    
-    const token = `mock-token-${Date.now()}`;
-    storeSession(user, token);
-    
-    return {
-      success: true,
-      message: 'Connexion réussie',
-      user,
-      token,
-    };
   },
 
   async logout(): Promise<{ success: boolean }> {
