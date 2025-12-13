@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, Phone, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronDown, UserPlus, ChevronRight, LogIn } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const gameItems = [
   { label: "Minecraft", href: "/games/minecraft", price: "2,99€", popular: true },
@@ -33,6 +34,7 @@ export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -145,13 +147,28 @@ export const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Button variant="glass" size="sm" className="gap-2">
-              <Phone className="w-4 h-4" />
-              +33 1 23 45 67 89
-            </Button>
-            <Button variant="glow" size="default">
-              Connexion
-            </Button>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button variant="glow" size="default">
+                  Mon Espace
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/register">
+                  <Button variant="glass" size="sm" className="gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    Créer un compte
+                  </Button>
+                </Link>
+                <Link to="/login">
+                  <Button variant="glow" size="default" className="gap-2">
+                    <LogIn className="w-4 h-4" />
+                    Connexion
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -196,9 +213,28 @@ export const Navbar = () => {
                 )
               ))}
               <div className="pt-4 space-y-3">
-                <Button variant="glow" className="w-full">
-                  Connexion
-                </Button>
+                {isAuthenticated ? (
+                  <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="glow" className="w-full">
+                      Mon Espace
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="glass" className="w-full gap-2">
+                        <UserPlus className="w-4 h-4" />
+                        Créer un compte
+                      </Button>
+                    </Link>
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="glow" className="w-full gap-2">
+                        <LogIn className="w-4 h-4" />
+                        Connexion
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
