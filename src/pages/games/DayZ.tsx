@@ -2,9 +2,9 @@ import { GamePageTemplate } from "./GamePageTemplate";
 import dayzHero from "@/assets/games/heroes/dayz-hero.jpg";
 
 const plans = [
-  { name: "Survivor", slots: "20", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "9,99€" },
-  { name: "Community", slots: "40", ram: "16 GB", cpu: "6 vCores", storage: "100 GB", price: "17,99€", popular: true },
-  { name: "Official", slots: "60", ram: "24 GB", cpu: "8 vCores", storage: "150 GB", price: "27,99€" },
+  { name: "Survivor", vcores: "4", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "9,99€" },
+  { name: "Community", vcores: "6", ram: "16 GB", cpu: "6 vCores", storage: "100 GB", price: "17,99€", popular: true },
+  { name: "Official", vcores: "8", ram: "24 GB", cpu: "8 vCores", storage: "150 GB", price: "27,99€" },
 ];
 
 const DayZPage = () => {

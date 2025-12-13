@@ -2,9 +2,9 @@ import { GamePageTemplate } from "./GamePageTemplate";
 import arkHero from "@/assets/games/heroes/ark-hero.jpg";
 
 const plans = [
-  { name: "Solo/Duo", slots: "10", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "12,99€" },
-  { name: "Tribe", slots: "30", ram: "16 GB", cpu: "6 vCores", storage: "100 GB", price: "24,99€", popular: true },
-  { name: "Cluster", slots: "70", ram: "32 GB", cpu: "8 vCores", storage: "200 GB", price: "44,99€" },
+  { name: "Solo/Duo", vcores: "4", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "12,99€" },
+  { name: "Tribe", vcores: "6", ram: "16 GB", cpu: "6 vCores", storage: "100 GB", price: "24,99€", popular: true },
+  { name: "Cluster", vcores: "8", ram: "32 GB", cpu: "8 vCores", storage: "200 GB", price: "44,99€" },
 ];
 
 const ArkPage = () => {

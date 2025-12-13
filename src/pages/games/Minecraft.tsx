@@ -2,9 +2,9 @@ import { GamePageTemplate } from "./GamePageTemplate";
 import minecraftHero from "@/assets/games/heroes/minecraft-hero.jpg";
 
 const plans = [
-  { name: "Vanilla", slots: "10", ram: "2 GB", cpu: "2 vCores", storage: "10 GB", price: "2,99€" },
-  { name: "Modded", slots: "20", ram: "4 GB", cpu: "3 vCores", storage: "25 GB", price: "5,99€", popular: true },
-  { name: "Network", slots: "100", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "12,99€" },
+  { name: "Vanilla", vcores: "2", ram: "2 GB", cpu: "2 vCores", storage: "10 GB", price: "2,99€" },
+  { name: "Modded", vcores: "3", ram: "4 GB", cpu: "3 vCores", storage: "25 GB", price: "5,99€", popular: true },
+  { name: "Network", vcores: "4", ram: "8 GB", cpu: "4 vCores", storage: "50 GB", price: "12,99€" },
 ];
 
 const MinecraftPage = () => {

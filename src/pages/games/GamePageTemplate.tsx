@@ -9,7 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 interface GamePlan {
   name: string;
-  slots: string;
+  vcores: string;
   ram: string;
   cpu: string;
   storage: string;
@@ -40,13 +40,13 @@ export const GamePageTemplate = ({
 }: GamePageProps) => {
   const navigate = useNavigate();
   const [customRam, setCustomRam] = useState([8]);
-  const [customSlots, setCustomSlots] = useState([32]);
+  const [customVcores, setCustomVcores] = useState([4]);
 
   const calculateCustomPrice = () => {
-    const basePrice = 2.99;
-    const ramPrice = customRam[0] * 0.5;
-    const slotsPrice = customSlots[0] * 0.05;
-    return (basePrice + ramPrice + slotsPrice).toFixed(2);
+    const basePrice = 4.99;
+    const ramPrice = customRam[0] * 0.75;
+    const vcorePrice = customVcores[0] * 2.5;
+    return (basePrice + ramPrice + vcorePrice).toFixed(2);
   };
   
   const handlePlanSelect = (planName: string) => {
@@ -54,7 +54,7 @@ export const GamePageTemplate = ({
   };
   
   const handleCustomConfig = () => {
-    navigate(`/checkout?type=game&game=${gameId}&ram=${customRam[0]}&slots=${customSlots[0]}`);
+    navigate(`/checkout?type=game&game=${gameId}&ram=${customRam[0]}&slots=${customVcores[0]}`);
   };
 
   return (
@@ -216,8 +216,7 @@ export const GamePageTemplate = ({
                   
                   {/* Unlimited Players Badge */}
                   <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
-                    <span className="text-primary font-bold">∞</span>
-                    <span className="text-sm font-bold text-primary uppercase tracking-wide">{plan.slots} Joueurs</span>
+                    <span className="text-sm font-bold text-primary">{plan.vcores} vCores • Joueurs illimités</span>
                   </div>
                 </div>
 
@@ -303,24 +302,25 @@ export const GamePageTemplate = ({
                 </div>
               </div>
 
-              {/* Slots Slider */}
+              {/* VCores Slider */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm font-medium">Nombre de joueurs</label>
-                  <span className="text-lg font-bold text-primary">{customSlots[0]} slots</span>
+                  <label className="text-sm font-medium">Nombre de vCores</label>
+                  <span className="text-lg font-bold text-primary">{customVcores[0]} vCores</span>
                 </div>
                 <Slider
-                  value={customSlots}
-                  onValueChange={setCustomSlots}
-                  min={10}
-                  max={500}
-                  step={10}
+                  value={customVcores}
+                  onValueChange={setCustomVcores}
+                  min={2}
+                  max={16}
+                  step={1}
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                  <span>10 slots</span>
-                  <span>500 slots</span>
+                  <span>2 vCores</span>
+                  <span>16 vCores</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">Joueurs illimités inclus</p>
               </div>
 
               {/* Summary */}
