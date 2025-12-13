@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Gamepad2 } from "lucide-react";
 import { Button } from "./ui/button";
@@ -19,6 +20,7 @@ const games = [
     image: minecraftImg,
     color: "from-green-500/30 to-emerald-600/30",
     popular: true,
+    href: "/games/minecraft",
   },
   {
     name: "Rust",
@@ -26,18 +28,21 @@ const games = [
     image: rustImg,
     color: "from-orange-500/30 to-red-600/30",
     popular: true,
+    href: "/games/rust",
   },
   {
     name: "ARK: Survival",
     price: "7,60€",
     image: arkImg,
     color: "from-blue-500/30 to-cyan-600/30",
+    href: "/games/ark",
   },
   {
     name: "FiveM",
     price: "4,99€",
     image: fivemImg,
     color: "from-orange-500/30 to-amber-600/30",
+    href: "/games/fivem",
   },
   {
     name: "Palworld",
@@ -45,24 +50,28 @@ const games = [
     image: palworldImg,
     color: "from-green-500/30 to-lime-600/30",
     popular: true,
+    href: "/games/palworld",
   },
   {
     name: "Enshrouded",
     price: "3,50€",
     image: enshroudedImg,
     color: "from-cyan-500/30 to-blue-600/30",
+    href: "/games/enshrouded",
   },
   {
     name: "Garry's Mod",
     price: "5,99€",
     image: gmodImg,
     color: "from-amber-500/30 to-orange-600/30",
+    href: "/games/gmod",
   },
   {
     name: "DayZ",
     price: "5,99€",
     image: dayzImg,
     color: "from-gray-500/30 to-slate-600/30",
+    href: "/games/dayz",
   },
 ];
 
@@ -107,44 +116,46 @@ export const GamesSection = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group relative"
             >
-              <div className="relative overflow-hidden rounded-2xl h-full">
-                {/* Background image */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                  style={{ backgroundImage: `url(${game.image})` }}
-                />
-                
-                {/* Overlay gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent`} />
-                
-                {/* Content */}
-                <div className="relative p-6 pt-32 h-full flex flex-col justify-end">
-                  {/* Popular badge */}
-                  {game.popular && (
-                    <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-                      Populaire
-                    </div>
-                  )}
+              <Link to={game.href} className="block">
+                <div className="relative overflow-hidden rounded-2xl h-full">
+                  {/* Background image */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                    style={{ backgroundImage: `url(${game.image})` }}
+                  />
+                  
+                  {/* Overlay gradient */}
+                  <div className={`absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent`} />
+                  
+                  {/* Content */}
+                  <div className="relative p-6 pt-32 h-full flex flex-col justify-end">
+                    {/* Popular badge */}
+                    {game.popular && (
+                      <div className="absolute top-4 right-4 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                        Populaire
+                      </div>
+                    )}
 
-                  {/* Game info */}
-                  <h3 className="font-display text-xl font-bold text-foreground mb-1">
-                    {game.name}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    À partir de <span className="text-primary font-semibold">{game.price}</span>/mois
-                  </p>
+                    {/* Game info */}
+                    <h3 className="font-display text-xl font-bold text-foreground mb-1">
+                      {game.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      À partir de <span className="text-primary font-semibold">{game.price}</span>/mois
+                    </p>
 
-                  {/* CTA */}
-                  <Button 
-                    variant="glow" 
-                    size="sm"
-                    className="w-full group/btn justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  >
-                    Déployer
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </Button>
+                    {/* CTA */}
+                    <Button 
+                      variant="glow" 
+                      size="sm"
+                      className="w-full group/btn justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    >
+                      Déployer
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              </Link>
             </motion.div>
           ))}
         </div>
@@ -157,10 +168,12 @@ export const GamesSection = () => {
           transition={{ delay: 0.5 }}
           className="text-center mt-12"
         >
-          <Button variant="glow" size="lg" className="gap-2">
-            Voir tous les jeux
-            <ArrowRight className="w-5 h-5" />
-          </Button>
+          <Link to="/games">
+            <Button variant="glow" size="lg" className="gap-2">
+              Voir tous les jeux
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>
