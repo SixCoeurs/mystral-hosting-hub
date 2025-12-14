@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -19,6 +19,9 @@ import {
   Lock,
   CheckCircle,
   AlertCircle,
+  FileText,
+  Download,
+  Receipt,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import api, { Invoice } from '@/services/api';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
@@ -56,6 +60,31 @@ export default function Account() {
   });
   const [showPasswords, setShowPasswords] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+
+  // Invoices state
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoicesTotal, setInvoicesTotal] = useState(0);
+
+  // Fetch invoices
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (!isAuthenticated) return;
+      setInvoicesLoading(true);
+      try {
+        const result = await api.getInvoices();
+        if (result.success) {
+          setInvoices(result.invoices);
+          setInvoicesTotal(result.total);
+        }
+      } catch (error) {
+        console.error('Failed to fetch invoices:', error);
+      } finally {
+        setInvoicesLoading(false);
+      }
+    };
+    fetchInvoices();
+  }, [isAuthenticated]);
 
   // Redirect if not authenticated
   if (!authLoading && !isAuthenticated) {
@@ -520,12 +549,83 @@ export default function Account() {
               {/* Billing Tab */}
               <TabsContent value="billing">
                 <div className="bg-card border border-border rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">
-                    Facturation & Paiements
-                  </h3>
-                  <p className="text-muted-foreground">
-                    La gestion de la facturation sera disponible prochainement avec l'intégration Stripe.
-                  </p>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                      <Receipt className="h-5 w-5" />
+                      Mes factures
+                    </h3>
+                    <span className="text-sm text-muted-foreground">
+                      {invoicesTotal} facture{invoicesTotal > 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  {invoicesLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                  ) : invoices.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">Aucune facture pour le moment</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Vos factures apparaîtront ici après votre premier paiement
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {invoices.map((invoice) => (
+                        <div
+                          key={invoice.uuid}
+                          className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <FileText className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {invoice.invoice_number}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {invoice.description}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6">
+                            <div className="text-right">
+                              <p className="font-semibold text-foreground">
+                                {invoice.total.toFixed(2)}€
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(invoice.created_at).toLocaleDateString('fr-FR')}
+                              </p>
+                            </div>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              invoice.status === 'paid'
+                                ? 'bg-green-500/10 text-green-500'
+                                : invoice.status === 'pending'
+                                ? 'bg-orange-500/10 text-orange-500'
+                                : 'bg-red-500/10 text-red-500'
+                            }`}>
+                              {invoice.status === 'paid' ? 'Payée' : invoice.status === 'pending' ? 'En attente' : invoice.status === 'refunded' ? 'Remboursée' : 'Annulée'}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                toast({
+                                  title: 'Téléchargement',
+                                  description: `Téléchargement de la facture ${invoice.invoice_number}...`,
+                                });
+                              }}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </TabsContent>
 

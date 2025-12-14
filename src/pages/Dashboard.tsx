@@ -357,7 +357,7 @@ export default function Dashboard() {
                           <p className="font-semibold text-foreground">
                             {service.billing_amount.toFixed(2)}€
                             <span className="text-sm text-muted-foreground font-normal">
-                              /{service.billing_cycle === 'monthly' ? 'mois' : service.billing_cycle === 'quarterly' ? 'trim.' : 'an'}
+                              /{service.billing_cycle === 'monthly' ? 'mois' : service.billing_cycle === 'quarterly' ? 'trim.' : service.billing_cycle === 'biannual' ? 'sem.' : 'an'}
                             </span>
                           </p>
                           <p className="text-xs text-muted-foreground">

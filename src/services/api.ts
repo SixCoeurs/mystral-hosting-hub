@@ -76,7 +76,7 @@ export interface Service {
   category_name?: string;
   location_name?: string;
   primary_ip?: string;
-  billing_cycle: 'monthly' | 'quarterly' | 'yearly';
+  billing_cycle: 'monthly' | 'quarterly' | 'biannual' | 'yearly';
   billing_amount: number;
   next_due_date: string;
   current_specs: Record<string, unknown>;
@@ -547,6 +547,91 @@ export const api = {
       return { success: false, message: 'Erreur de connexion au serveur' };
     }
   },
+
+  // Invoices
+  async getInvoices(limit = 20, offset = 0): Promise<{
+    success: boolean;
+    invoices: Invoice[];
+    total: number;
+    message?: string;
+  }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, invoices: [], total: 0, message: 'Non authentifié' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/invoices?limit=${limit}&offset=${offset}`, {
+        headers: {
+          'Authorization': `Bearer ${session.token}`,
+        },
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        invoices: result.invoices || [],
+        total: result.total || 0,
+        message: result.message,
+      };
+    } catch {
+      return { success: false, invoices: [], total: 0, message: 'Erreur de connexion au serveur' };
+    }
+  },
+
+  async getInvoice(uuid: string): Promise<{
+    success: boolean;
+    invoice?: Invoice;
+    message?: string;
+  }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/invoices/${uuid}`, {
+        headers: {
+          'Authorization': `Bearer ${session.token}`,
+        },
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        invoice: result.invoice,
+        message: result.message,
+      };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
+  },
 };
+
+// Invoice type
+export interface Invoice {
+  uuid: string;
+  invoice_number: string;
+  amount: number;
+  tax_amount: number;
+  total: number;
+  status: 'pending' | 'paid' | 'cancelled' | 'refunded';
+  billing_cycle: string;
+  paid_at: string | null;
+  due_date: string;
+  description: string;
+  created_at: string;
+  customer?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    company_name?: string;
+    address_line1?: string;
+    address_line2?: string;
+    city?: string;
+    postal_code?: string;
+    country_code?: string;
+  };
+}
 
 export default api;
