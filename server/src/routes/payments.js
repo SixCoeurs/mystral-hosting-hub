@@ -151,6 +151,36 @@ router.get('/config', (req, res) => {
   });
 });
 
+// GET /payments/status/:paymentIntentId - Check real payment status from Stripe
+router.get('/status/:paymentIntentId', async (req, res) => {
+  try {
+    const { paymentIntentId } = req.params;
+
+    if (!paymentIntentId || !paymentIntentId.startsWith('pi_')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment intent ID',
+      });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    res.json({
+      success: true,
+      status: paymentIntent.status,
+      amount: paymentIntent.amount / 100,
+      currency: paymentIntent.currency,
+    });
+  } catch (err) {
+    console.error('Get payment status error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la vérification du paiement',
+      status: 'error',
+    });
+  }
+});
+
 // POST /payments/webhook - Stripe webhook handler (no auth required)
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];

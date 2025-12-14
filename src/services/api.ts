@@ -494,6 +494,26 @@ export const api = {
     }
   },
 
+  async getPaymentStatus(paymentIntentId: string): Promise<{
+    success: boolean;
+    status: string;
+    amount?: number;
+    currency?: string;
+  }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/status/${paymentIntentId}`);
+      const result = await response.json();
+      return {
+        success: result.success,
+        status: result.status || 'error',
+        amount: result.amount,
+        currency: result.currency,
+      };
+    } catch {
+      return { success: false, status: 'error' };
+    }
+  },
+
   async confirmPayment(data: {
     paymentIntentId: string;
     orderUuid: string;

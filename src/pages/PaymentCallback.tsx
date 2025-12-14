@@ -13,45 +13,54 @@ export default function PaymentCallback() {
 
   useEffect(() => {
     const verifyPayment = async () => {
-      const paymentIntent = searchParams.get('payment_intent');
-      const paymentIntentClientSecret = searchParams.get('payment_intent_client_secret');
-      const redirectStatus = searchParams.get('redirect_status');
+      const paymentIntentId = searchParams.get('payment_intent');
 
-      // Si on a un redirect_status de Stripe
-      if (redirectStatus) {
-        if (redirectStatus === 'succeeded') {
-          setStatus('success');
-          setMessage('Paiement réussi ! Votre commande a été confirmée.');
+      // Si on a un payment_intent, vérifier son vrai statut via l'API
+      if (paymentIntentId) {
+        const result = await api.getPaymentStatus(paymentIntentId);
 
-          // Confirmer le paiement côté backend si on a le paymentIntent
-          if (paymentIntent) {
+        if (result.success) {
+          if (result.status === 'succeeded') {
+            setStatus('success');
+            setMessage('Paiement réussi ! Votre commande a été confirmée.');
+
+            // Confirmer le paiement côté backend
             try {
               await api.confirmPayment({
-                paymentIntentId: paymentIntent,
-                orderUuid: '', // On n'a pas l'orderUuid ici, le backend devra le retrouver
+                paymentIntentId: paymentIntentId,
+                orderUuid: '',
               });
             } catch (e) {
               console.error('Error confirming payment:', e);
             }
-          }
 
-          // Rediriger vers le dashboard après 3 secondes
-          setTimeout(() => {
-            navigate('/dashboard?payment=success');
-          }, 3000);
-        } else if (redirectStatus === 'failed') {
-          setStatus('error');
-          setMessage('Le paiement a échoué. Veuillez réessayer.');
-        } else if (redirectStatus === 'pending') {
-          setStatus('loading');
-          setMessage('Votre paiement est en cours de traitement...');
-          // Vérifier à nouveau dans quelques secondes
-          setTimeout(() => {
-            window.location.reload();
-          }, 5000);
+            // Rediriger vers le dashboard après 3 secondes
+            setTimeout(() => {
+              navigate('/dashboard?payment=success');
+            }, 3000);
+          } else if (result.status === 'requires_payment_method') {
+            setStatus('error');
+            setMessage('Le paiement a été refusé. Veuillez réessayer avec une autre méthode de paiement.');
+          } else if (result.status === 'processing') {
+            setStatus('loading');
+            setMessage('Votre paiement est en cours de traitement...');
+            // Vérifier à nouveau dans quelques secondes
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          } else if (result.status === 'requires_action') {
+            setStatus('loading');
+            setMessage('Action requise pour finaliser le paiement...');
+          } else if (result.status === 'canceled') {
+            setStatus('error');
+            setMessage('Le paiement a été annulé.');
+          } else {
+            setStatus('error');
+            setMessage(`Statut du paiement: ${result.status}`);
+          }
         } else {
           setStatus('error');
-          setMessage(`Statut du paiement: ${redirectStatus}`);
+          setMessage('Impossible de vérifier le statut du paiement.');
         }
       } else {
         // Pas de paramètres Stripe, rediriger vers le dashboard
@@ -98,7 +107,7 @@ export default function PaymentCallback() {
                   <h1 className="text-2xl font-bold mb-2 text-destructive">Paiement échoué</h1>
                   <p className="text-muted-foreground mb-6">{message}</p>
                   <div className="space-y-3">
-                    <Button onClick={() => navigate(-1)} variant="glow" className="w-full">
+                    <Button onClick={() => navigate('/checkout')} variant="glow" className="w-full">
                       Réessayer le paiement
                     </Button>
                     <Button onClick={() => navigate('/dashboard')} variant="outline" className="w-full">
