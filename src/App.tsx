@@ -26,6 +26,7 @@ import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import ServiceDetail from "./pages/ServiceDetail";
 import Checkout from "./pages/Checkout";
+import PaymentCallback from "./pages/PaymentCallback";
 import Contact from "./pages/Contact";
 import AntiDDoS from "./pages/AntiDDoS";
 import NotFound from "./pages/NotFound";
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment/callback" element={<PaymentCallback />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/anti-ddos" element={<AntiDDoS />} />
             <Route path="/account" element={<Account />} />

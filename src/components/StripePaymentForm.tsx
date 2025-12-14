@@ -47,7 +47,7 @@ function PaymentForm({ onSuccess, onError }: PaymentFormProps) {
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/dashboard?payment=success`,
+        return_url: `${window.location.origin}/payment/callback`,
       },
       redirect: 'if_required',
     });
