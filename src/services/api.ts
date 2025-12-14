@@ -434,14 +434,98 @@ export const api = {
 
   async disable2FA(code: string): Promise<AuthResponse> {
     await new Promise(resolve => setTimeout(resolve, 400));
-    
+
     const session = getStoredSession();
     if (session) {
       const updatedUser = { ...session.user, totp_enabled: false };
       storeSession(updatedUser, session.token);
     }
-    
+
     return { success: true, message: '2FA désactivé' };
+  },
+
+  // Payments
+  async getStripeConfig(): Promise<{ publishableKey: string | null }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/config`);
+      const result = await response.json();
+      return { publishableKey: result.publishableKey || null };
+    } catch {
+      return { publishableKey: null };
+    }
+  },
+
+  async createPaymentIntent(data: {
+    amount: number;
+    billing_cycle?: string;
+    items?: Array<{ product_slug: string; quantity: number }>;
+  }): Promise<{
+    success: boolean;
+    clientSecret?: string;
+    paymentIntentId?: string;
+    orderUuid?: string;
+    message?: string;
+  }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/create-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        clientSecret: result.clientSecret,
+        paymentIntentId: result.paymentIntentId,
+        orderUuid: result.orderUuid,
+        message: result.message,
+      };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
+  },
+
+  async confirmPayment(data: {
+    paymentIntentId: string;
+    orderUuid: string;
+  }): Promise<{
+    success: boolean;
+    message?: string;
+    serviceUuid?: string;
+  }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        message: result.message,
+        serviceUuid: result.serviceUuid,
+      };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
   },
 };
 

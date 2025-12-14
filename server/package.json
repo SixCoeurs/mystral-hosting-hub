@@ -9,12 +9,15 @@
     "dev": "node --watch src/index.js"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.5.3",
     "argon2": "^0.40.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "mariadb": "^3.3.1",
+    "stripe": "^20.0.0",
     "uuid": "^10.0.0"
   }
 }

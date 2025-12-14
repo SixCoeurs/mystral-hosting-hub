@@ -34,6 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { StripePaymentForm } from "@/components/StripePaymentForm";
 
 type ServiceType = "vps" | "vds" | "enterprise" | "game";
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -1235,25 +1236,19 @@ export default function Checkout() {
                 </div>
               </div>
               
-              {/* Payment Methods Placeholder */}
+              {/* Stripe Payment Form */}
               <div className="space-y-4">
-                <Button variant="glow" className="w-full" size="lg">
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Payer par carte
-                </Button>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border/50"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-card px-2 text-muted-foreground">ou</span>
-                  </div>
-                </div>
-                
-                <Button variant="outline" className="w-full" size="lg">
-                  PayPal
-                </Button>
+                <StripePaymentForm
+                  amount={parseFloat(calculateTotal()) * getBillingMultiplier()}
+                  billingCycle={billingPeriod}
+                  onSuccess={(paymentIntentId, orderUuid) => {
+                    console.log('Payment success:', paymentIntentId, orderUuid);
+                    navigate('/dashboard?payment=success');
+                  }}
+                  onError={(error) => {
+                    console.error('Payment error:', error);
+                  }}
+                />
               </div>
               
               <p className="text-xs text-muted-foreground text-center mt-6">
