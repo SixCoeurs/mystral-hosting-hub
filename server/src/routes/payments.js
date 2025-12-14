@@ -31,13 +31,15 @@ function toNumber(val) {
 }
 
 // Billing cycle configuration with discounts and intervals
+// NOTE: DB ENUM only has: monthly, quarterly, yearly
+// For semiannual, we store 'yearly' but with 6 months interval
 const BILLING_CYCLES = {
-  monthly: { dbValue: 'monthly', months: 1, discount: 0 },
-  quarterly: { dbValue: 'quarterly', months: 3, discount: 5 },
-  semiannual: { dbValue: 'biannual', months: 6, discount: 10 },
-  biannual: { dbValue: 'biannual', months: 6, discount: 10 }, // alias
-  annual: { dbValue: 'yearly', months: 12, discount: 15 },
-  yearly: { dbValue: 'yearly', months: 12, discount: 15 }, // alias
+  monthly: { dbValue: 'monthly', months: 1, discount: 0, label: 'mensuel' },
+  quarterly: { dbValue: 'quarterly', months: 3, discount: 5, label: 'trimestriel' },
+  semiannual: { dbValue: 'yearly', months: 6, discount: 10, label: 'semestriel' }, // DB workaround: stored as 'yearly'
+  biannual: { dbValue: 'yearly', months: 6, discount: 10, label: 'semestriel' }, // alias
+  annual: { dbValue: 'yearly', months: 12, discount: 15, label: 'annuel' },
+  yearly: { dbValue: 'yearly', months: 12, discount: 15, label: 'annuel' }, // alias
 };
 
 // Get billing cycle config (with fallback to monthly)
@@ -178,24 +180,52 @@ router.post('/confirm', authenticate, requireStripe, async (req, res) => {
       console.log('Note: Could not create service:', dbErr.message);
     }
 
-    // Create invoice for the user
+    // Create invoice for the user (matching actual DB schema)
     const invoiceUuid = uuidv4();
-    const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    const currentYear = new Date().getFullYear();
+    const invoiceNumber = `INV-${currentYear}-${Date.now().toString().slice(-6)}`;
+
+    // Get user billing address for invoice
+    let billingAddress = {};
+    try {
+      const userInfo = await query(
+        `SELECT first_name, last_name, email, company_name, address_line1, address_line2, city, postal_code, country_code
+         FROM users WHERE id = ?`,
+        [userId]
+      );
+      if (userInfo.length > 0) {
+        billingAddress = {
+          first_name: userInfo[0].first_name,
+          last_name: userInfo[0].last_name,
+          email: userInfo[0].email,
+          company_name: userInfo[0].company_name || null,
+          address_line1: userInfo[0].address_line1 || null,
+          address_line2: userInfo[0].address_line2 || null,
+          city: userInfo[0].city || null,
+          postal_code: userInfo[0].postal_code || null,
+          country_code: userInfo[0].country_code || 'FR',
+        };
+      }
+    } catch (err) {
+      console.log('Note: Could not fetch user billing address:', err.message);
+    }
+
     try {
       await query(
-        `INSERT INTO invoices (uuid, invoice_number, user_id, service_uuid, payment_intent_id, amount, tax_amount, total, status, billing_cycle, paid_at, due_date, description)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'paid', ?, NOW(), NOW(), ?)`,
+        `INSERT INTO invoices (uuid, invoice_number, user_id, subtotal, tax_amount, tax_rate, discount_amount, total, amount_paid, status, issue_date, due_date, paid_at, billing_address, notes)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', CURDATE(), CURDATE(), NOW(), ?, ?)`,
         [
           invoiceUuid,
           invoiceNumber,
           userId,
-          serviceUuid,
-          paymentIntentId,
-          billingAmount,
-          0, // tax_amount - can be calculated based on location
-          billingAmount,
-          billingConfig.dbValue,
-          `Paiement ${billingConfig.dbValue === 'monthly' ? 'mensuel' : billingConfig.dbValue === 'quarterly' ? 'trimestriel' : billingConfig.dbValue === 'biannual' ? 'semestriel' : 'annuel'}`
+          billingAmount,        // subtotal
+          0,                    // tax_amount
+          0,                    // tax_rate
+          0,                    // discount_amount
+          billingAmount,        // total
+          billingAmount,        // amount_paid (fully paid)
+          JSON.stringify(billingAddress),
+          `Paiement ${billingConfig.label}`
         ]
       );
       console.log('Invoice created:', invoiceNumber);
@@ -302,8 +332,8 @@ router.get('/invoices', authenticate, async (req, res) => {
     const offset = parseInt(req.query.offset) || 0;
 
     const invoices = await query(
-      `SELECT uuid, invoice_number, amount, tax_amount, total, status, billing_cycle,
-              paid_at, due_date, description, created_at
+      `SELECT uuid, invoice_number, subtotal, tax_amount, total, status,
+              paid_at, due_date, issue_date, notes, created_at
        FROM invoices
        WHERE user_id = ?
        ORDER BY created_at DESC
@@ -321,14 +351,14 @@ router.get('/invoices', authenticate, async (req, res) => {
       invoices: invoices.map(inv => ({
         uuid: inv.uuid,
         invoice_number: inv.invoice_number,
-        amount: parseFloat(inv.amount),
+        amount: parseFloat(inv.subtotal || 0),
         tax_amount: parseFloat(inv.tax_amount || 0),
-        total: parseFloat(inv.total),
+        total: parseFloat(inv.total || 0),
         status: inv.status,
-        billing_cycle: inv.billing_cycle,
         paid_at: inv.paid_at,
         due_date: inv.due_date,
-        description: inv.description,
+        issue_date: inv.issue_date,
+        description: inv.notes || '',
         created_at: inv.created_at,
       })),
       total: toNumber(countResult[0].total),
@@ -349,10 +379,11 @@ router.get('/invoices/:uuid', authenticate, async (req, res) => {
     const { uuid } = req.params;
 
     const invoices = await query(
-      `SELECT i.*, u.first_name, u.last_name, u.email, u.company_name,
-              u.address_line1, u.address_line2, u.city, u.postal_code, u.country_code
+      `SELECT i.uuid, i.invoice_number, i.subtotal, i.tax_amount, i.tax_rate,
+              i.discount_amount, i.total, i.amount_paid, i.status,
+              i.issue_date, i.due_date, i.paid_at, i.billing_address, i.notes,
+              i.created_at
        FROM invoices i
-       JOIN users u ON i.user_id = u.id
        WHERE i.uuid = ? AND i.user_id = ?`,
       [uuid, userId]
     );
@@ -366,31 +397,34 @@ router.get('/invoices/:uuid', authenticate, async (req, res) => {
 
     const invoice = invoices[0];
 
+    // Parse billing_address JSON
+    let customer = {};
+    try {
+      customer = typeof invoice.billing_address === 'string'
+        ? JSON.parse(invoice.billing_address)
+        : invoice.billing_address || {};
+    } catch {
+      customer = {};
+    }
+
     res.json({
       success: true,
       invoice: {
         uuid: invoice.uuid,
         invoice_number: invoice.invoice_number,
-        amount: parseFloat(invoice.amount),
+        amount: parseFloat(invoice.subtotal || 0),
         tax_amount: parseFloat(invoice.tax_amount || 0),
-        total: parseFloat(invoice.total),
+        tax_rate: parseFloat(invoice.tax_rate || 0),
+        discount_amount: parseFloat(invoice.discount_amount || 0),
+        total: parseFloat(invoice.total || 0),
+        amount_paid: parseFloat(invoice.amount_paid || 0),
         status: invoice.status,
-        billing_cycle: invoice.billing_cycle,
         paid_at: invoice.paid_at,
+        issue_date: invoice.issue_date,
         due_date: invoice.due_date,
-        description: invoice.description,
+        description: invoice.notes || '',
         created_at: invoice.created_at,
-        customer: {
-          first_name: invoice.first_name,
-          last_name: invoice.last_name,
-          email: invoice.email,
-          company_name: invoice.company_name,
-          address_line1: invoice.address_line1,
-          address_line2: invoice.address_line2,
-          city: invoice.city,
-          postal_code: invoice.postal_code,
-          country_code: invoice.country_code,
-        },
+        customer: customer,
       },
     });
   } catch (err) {
