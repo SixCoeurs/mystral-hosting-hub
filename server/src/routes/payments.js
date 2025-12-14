@@ -30,27 +30,52 @@ function toNumber(val) {
   return typeof val === 'bigint' ? Number(val) : val;
 }
 
+// Billing cycle configuration with discounts and intervals
+const BILLING_CYCLES = {
+  monthly: { dbValue: 'monthly', months: 1, discount: 0 },
+  quarterly: { dbValue: 'quarterly', months: 3, discount: 5 },
+  semiannual: { dbValue: 'semiannual', months: 6, discount: 10 },
+  annual: { dbValue: 'yearly', months: 12, discount: 15 },
+  yearly: { dbValue: 'yearly', months: 12, discount: 15 }, // alias
+};
+
+// Get billing cycle config (with fallback to monthly)
+function getBillingConfig(cycle) {
+  return BILLING_CYCLES[cycle] || BILLING_CYCLES.monthly;
+}
+
+// Calculate discounted price
+function applyDiscount(basePrice, discountPercent) {
+  return basePrice * (1 - discountPercent / 100);
+}
+
 // POST /payments/create-intent - Create a PaymentIntent for checkout
 router.post('/create-intent', authenticate, requireStripe, async (req, res) => {
   try {
     const userId = req.user.id;
     const {
       items,           // Array of { product_slug, quantity, billing_cycle }
-      billing_cycle,   // 'monthly', 'quarterly', 'yearly'
+      billing_cycle,   // 'monthly', 'quarterly', 'semiannual', 'annual'
       location_code,   // Location code
       addons,          // Array of addon slugs
       customer_info,   // { first_name, last_name, email, etc. }
     } = req.body;
 
+    // Get billing configuration
+    const billingConfig = getBillingConfig(billing_cycle);
+
     // Calculate total amount
     let totalAmount = 0;
-    let orderItems = [];
 
-    // For now, we'll use a simplified calculation
-    // In production, you'd fetch real prices from the database
+    // Get the base monthly price
     if (req.body.amount) {
-      // Direct amount (in euros)
+      // Direct amount (in euros) - this is already the final amount with discounts applied
       totalAmount = Math.round(req.body.amount * 100); // Convert to cents
+    } else if (req.body.monthlyPrice) {
+      // Calculate from monthly price with discount
+      const baseMonthlyAmount = parseFloat(req.body.monthlyPrice);
+      const discountedMonthly = applyDiscount(baseMonthlyAmount, billingConfig.discount);
+      totalAmount = Math.round(discountedMonthly * billingConfig.months * 100);
     } else {
       // Calculate from items (simplified)
       totalAmount = Math.round((req.body.total || 9.99) * 100);
@@ -89,7 +114,8 @@ router.post('/create-intent', authenticate, requireStripe, async (req, res) => {
       },
     });
 
-    console.log('PaymentIntent created:', paymentIntent.id, 'Amount:', totalAmount / 100, 'EUR');
+    console.log('PaymentIntent created:', paymentIntent.id, 'Amount:', totalAmount / 100, 'EUR',
+      'Cycle:', billing_cycle || 'monthly', 'Discount:', billingConfig.discount + '%');
 
     res.json({
       success: true,
@@ -136,12 +162,16 @@ router.post('/confirm', authenticate, requireStripe, async (req, res) => {
     // Create service for the user (simplified - in production you'd have more details)
     const serviceUuid = uuidv4();
     try {
+      const billingCycle = paymentIntent.metadata.billing_cycle || 'monthly';
+      const billingConfig = getBillingConfig(billingCycle);
+      const billingAmount = paymentIntent.amount / 100;
+
       await query(
         `INSERT INTO services (uuid, user_id, status, billing_cycle, billing_amount, next_due_date, current_specs)
-         VALUES (?, ?, 'pending', ?, ?, DATE_ADD(NOW(), INTERVAL 1 MONTH), '{}')`,
-        [serviceUuid, userId, paymentIntent.metadata.billing_cycle || 'monthly', paymentIntent.amount / 100]
+         VALUES (?, ?, 'pending', ?, ?, DATE_ADD(NOW(), INTERVAL ? MONTH), '{}')`,
+        [serviceUuid, userId, billingConfig.dbValue, billingAmount, billingConfig.months]
       );
-      console.log('Service created:', serviceUuid);
+      console.log('Service created:', serviceUuid, 'Billing:', billingConfig.dbValue, 'Next due in', billingConfig.months, 'months');
     } catch (dbErr) {
       console.log('Note: Could not create service:', dbErr.message);
     }
