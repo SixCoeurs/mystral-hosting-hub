@@ -6,8 +6,24 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe (only if key is configured)
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+  stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+} else {
+  console.warn('⚠️  STRIPE_SECRET_KEY not configured - payment features disabled');
+}
+
+// Middleware to check if Stripe is configured
+function requireStripe(req, res, next) {
+  if (!stripe) {
+    return res.status(503).json({
+      success: false,
+      message: 'Service de paiement non configuré',
+    });
+  }
+  next();
+}
 
 // Helper to convert BigInt to Number
 function toNumber(val) {
@@ -15,7 +31,7 @@ function toNumber(val) {
 }
 
 // POST /payments/create-intent - Create a PaymentIntent for checkout
-router.post('/create-intent', authenticate, async (req, res) => {
+router.post('/create-intent', authenticate, requireStripe, async (req, res) => {
   try {
     const userId = req.user.id;
     const {
@@ -91,7 +107,7 @@ router.post('/create-intent', authenticate, async (req, res) => {
 });
 
 // POST /payments/confirm - Confirm payment was successful (called by frontend after Stripe confirms)
-router.post('/confirm', authenticate, async (req, res) => {
+router.post('/confirm', authenticate, requireStripe, async (req, res) => {
   try {
     const { paymentIntentId, orderUuid } = req.body;
     const userId = req.user.id;
@@ -152,7 +168,7 @@ router.get('/config', (req, res) => {
 });
 
 // GET /payments/status/:paymentIntentId - Check real payment status from Stripe
-router.get('/status/:paymentIntentId', async (req, res) => {
+router.get('/status/:paymentIntentId', requireStripe, async (req, res) => {
   try {
     const { paymentIntentId } = req.params;
 
@@ -183,6 +199,10 @@ router.get('/status/:paymentIntentId', async (req, res) => {
 
 // POST /payments/webhook - Stripe webhook handler (no auth required)
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: 'Stripe not configured' });
+  }
+
   const sig = req.headers['stripe-signature'];
   let event;
 
