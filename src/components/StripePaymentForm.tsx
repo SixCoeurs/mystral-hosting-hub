@@ -56,9 +56,21 @@ function PaymentForm({ onSuccess, onError }: PaymentFormProps) {
       setMessage(error.message || 'Une erreur est survenue');
       onError(error.message || 'Erreur de paiement');
       setIsProcessing(false);
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      setMessage('Paiement réussi !');
-      onSuccess(paymentIntent.id, paymentIntent.metadata?.order_uuid || '');
+    } else if (paymentIntent) {
+      if (paymentIntent.status === 'succeeded') {
+        setMessage('Paiement réussi !');
+        onSuccess(paymentIntent.id, paymentIntent.metadata?.order_uuid || '');
+      } else if (paymentIntent.status === 'requires_payment_method') {
+        setMessage('Le paiement a été refusé. Veuillez réessayer avec une autre carte.');
+        onError('Paiement refusé');
+        setIsProcessing(false);
+      } else if (paymentIntent.status === 'requires_action') {
+        // 3D Secure ou autre action requise - Stripe gère automatiquement
+        setIsProcessing(false);
+      } else {
+        setMessage(`Statut du paiement: ${paymentIntent.status}`);
+        setIsProcessing(false);
+      }
     } else {
       setIsProcessing(false);
     }

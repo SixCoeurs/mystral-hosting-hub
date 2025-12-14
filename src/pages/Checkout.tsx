@@ -1249,8 +1249,21 @@ export default function Checkout() {
                     console.error('Payment error:', error);
                   }}
                 />
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border/50"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-card px-2 text-muted-foreground">ou</span>
+                  </div>
+                </div>
+
+                <Button variant="outline" className="w-full" size="lg" disabled>
+                  PayPal (bientôt disponible)
+                </Button>
               </div>
-              
+
               <p className="text-xs text-muted-foreground text-center mt-6">
                 <Shield className="w-3 h-3 inline mr-1" />
                 Paiement sécurisé • Satisfait ou remboursé 7 jours
