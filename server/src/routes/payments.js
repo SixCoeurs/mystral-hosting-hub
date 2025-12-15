@@ -93,27 +93,52 @@ async function createStripeInvoice(customerId, amount, description, metadata = {
     const invoice = await stripe.invoices.create({
       customer: customerId,
       auto_advance: false,
-      collection_method: 'send_invoice', // Don't auto-charge
+      collection_method: 'send_invoice',
       days_until_due: 0,
       metadata: metadata,
     });
 
     // Finalize the invoice to generate PDF
-    const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+    let finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+
+    // Check if invoice is already paid (can happen if customer has default payment method)
+    if (finalizedInvoice.status === 'paid') {
+      console.log('Stripe Invoice already paid:', finalizedInvoice.id, 'PDF:', finalizedInvoice.invoice_pdf);
+      return {
+        id: finalizedInvoice.id,
+        number: finalizedInvoice.number,
+        pdf_url: finalizedInvoice.invoice_pdf,
+        hosted_url: finalizedInvoice.hosted_invoice_url,
+      };
+    }
 
     // Mark as paid out of band (payment was already collected via PaymentIntent)
-    const paidInvoice = await stripe.invoices.pay(finalizedInvoice.id, {
-      paid_out_of_band: true,
-    });
-
-    console.log('Stripe Invoice created:', paidInvoice.id, 'PDF:', paidInvoice.invoice_pdf);
-
-    return {
-      id: paidInvoice.id,
-      number: paidInvoice.number,
-      pdf_url: paidInvoice.invoice_pdf,
-      hosted_url: paidInvoice.hosted_invoice_url,
-    };
+    try {
+      const paidInvoice = await stripe.invoices.pay(finalizedInvoice.id, {
+        paid_out_of_band: true,
+      });
+      console.log('Stripe Invoice created:', paidInvoice.id, 'PDF:', paidInvoice.invoice_pdf);
+      return {
+        id: paidInvoice.id,
+        number: paidInvoice.number,
+        pdf_url: paidInvoice.invoice_pdf,
+        hosted_url: paidInvoice.hosted_invoice_url,
+      };
+    } catch (payErr) {
+      // If pay fails (already paid), just return the finalized invoice
+      if (payErr.message.includes('already paid') || payErr.message.includes('Invoice is already paid')) {
+        // Retrieve the latest invoice state
+        const refreshedInvoice = await stripe.invoices.retrieve(finalizedInvoice.id);
+        console.log('Stripe Invoice (already paid):', refreshedInvoice.id, 'PDF:', refreshedInvoice.invoice_pdf);
+        return {
+          id: refreshedInvoice.id,
+          number: refreshedInvoice.number,
+          pdf_url: refreshedInvoice.invoice_pdf,
+          hosted_url: refreshedInvoice.hosted_invoice_url,
+        };
+      }
+      throw payErr;
+    }
   } catch (err) {
     console.error('Error creating Stripe invoice:', err.message);
     return null;
