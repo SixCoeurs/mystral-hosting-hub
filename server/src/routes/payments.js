@@ -89,20 +89,21 @@ async function createStripeInvoice(customerId, amount, description, metadata = {
       description: description,
     });
 
-    // Create and finalize the invoice
+    // Create the invoice (don't auto-advance, we'll finalize manually)
     const invoice = await stripe.invoices.create({
       customer: customerId,
-      auto_advance: true, // Auto-finalize
-      collection_method: 'charge_automatically',
+      auto_advance: false,
+      collection_method: 'send_invoice', // Don't auto-charge
+      days_until_due: 0,
       metadata: metadata,
     });
 
     // Finalize the invoice to generate PDF
     const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
 
-    // Mark as paid (since payment already succeeded)
+    // Mark as paid out of band (payment was already collected via PaymentIntent)
     const paidInvoice = await stripe.invoices.pay(finalizedInvoice.id, {
-      paid_out_of_band: true, // Payment was collected outside of Stripe Invoicing
+      paid_out_of_band: true,
     });
 
     console.log('Stripe Invoice created:', paidInvoice.id, 'PDF:', paidInvoice.invoice_pdf);
