@@ -670,6 +670,7 @@ export interface Invoice {
   due_date: string;
   description: string;
   created_at: string;
+  pdf_url?: string | null;
   customer?: {
     first_name: string;
     last_name: string;

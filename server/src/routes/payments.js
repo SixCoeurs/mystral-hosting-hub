@@ -31,6 +31,94 @@ function toNumber(val) {
   return typeof val === 'bigint' ? Number(val) : val;
 }
 
+// Get or create Stripe Customer for a user
+async function getOrCreateStripeCustomer(user) {
+  if (!stripe) return null;
+
+  // Check if user already has a Stripe customer ID
+  const users = await query(
+    'SELECT stripe_customer_id FROM users WHERE id = ?',
+    [user.id]
+  );
+
+  if (users.length > 0 && users[0].stripe_customer_id) {
+    // Verify customer still exists in Stripe
+    try {
+      const customer = await stripe.customers.retrieve(users[0].stripe_customer_id);
+      if (!customer.deleted) {
+        return customer;
+      }
+    } catch (err) {
+      console.log('Stripe customer not found, creating new one');
+    }
+  }
+
+  // Create new Stripe customer
+  const customer = await stripe.customers.create({
+    email: user.email,
+    name: `${user.first_name} ${user.last_name}`,
+    metadata: {
+      user_id: String(toNumber(user.id)),
+      user_uuid: user.uuid,
+    },
+  });
+
+  // Save customer ID to database
+  try {
+    await query(
+      'UPDATE users SET stripe_customer_id = ? WHERE id = ?',
+      [customer.id, user.id]
+    );
+  } catch (err) {
+    console.log('Note: Could not save stripe_customer_id:', err.message);
+  }
+
+  return customer;
+}
+
+// Create a Stripe Invoice for a payment
+async function createStripeInvoice(customerId, amount, description, metadata = {}) {
+  if (!stripe || !customerId) return null;
+
+  try {
+    // Create an invoice item
+    await stripe.invoiceItems.create({
+      customer: customerId,
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: 'eur',
+      description: description,
+    });
+
+    // Create and finalize the invoice
+    const invoice = await stripe.invoices.create({
+      customer: customerId,
+      auto_advance: true, // Auto-finalize
+      collection_method: 'charge_automatically',
+      metadata: metadata,
+    });
+
+    // Finalize the invoice to generate PDF
+    const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+
+    // Mark as paid (since payment already succeeded)
+    const paidInvoice = await stripe.invoices.pay(finalizedInvoice.id, {
+      paid_out_of_band: true, // Payment was collected outside of Stripe Invoicing
+    });
+
+    console.log('Stripe Invoice created:', paidInvoice.id, 'PDF:', paidInvoice.invoice_pdf);
+
+    return {
+      id: paidInvoice.id,
+      number: paidInvoice.number,
+      pdf_url: paidInvoice.invoice_pdf,
+      hosted_url: paidInvoice.hosted_invoice_url,
+    };
+  } catch (err) {
+    console.error('Error creating Stripe invoice:', err.message);
+    return null;
+  }
+}
+
 // Billing cycle configuration with discounts and intervals
 // NOTE: DB ENUM only has: monthly, quarterly, yearly
 // For semiannual, we store 'yearly' but with 6 months interval
@@ -188,36 +276,63 @@ router.post('/confirm', authenticate, requireStripe, async (req, res) => {
 
     // Get user billing address for invoice
     let billingAddress = {};
+    let userInfo = null;
     try {
-      const userInfo = await query(
-        `SELECT first_name, last_name, email, company_name, address_line1, address_line2, city, postal_code, country_code
+      const userResult = await query(
+        `SELECT id, uuid, first_name, last_name, email, company_name, address_line1, address_line2, city, postal_code, country_code
          FROM users WHERE id = ?`,
         [userId]
       );
-      if (userInfo.length > 0) {
+      if (userResult.length > 0) {
+        userInfo = userResult[0];
         billingAddress = {
-          first_name: userInfo[0].first_name,
-          last_name: userInfo[0].last_name,
-          email: userInfo[0].email,
-          company_name: userInfo[0].company_name || null,
-          address_line1: userInfo[0].address_line1 || null,
-          address_line2: userInfo[0].address_line2 || null,
-          city: userInfo[0].city || null,
-          postal_code: userInfo[0].postal_code || null,
-          country_code: userInfo[0].country_code || 'FR',
+          first_name: userInfo.first_name,
+          last_name: userInfo.last_name,
+          email: userInfo.email,
+          company_name: userInfo.company_name || null,
+          address_line1: userInfo.address_line1 || null,
+          address_line2: userInfo.address_line2 || null,
+          city: userInfo.city || null,
+          postal_code: userInfo.postal_code || null,
+          country_code: userInfo.country_code || 'FR',
         };
       }
     } catch (err) {
       console.log('Note: Could not fetch user billing address:', err.message);
     }
 
+    // Create Stripe Customer and Invoice
+    let stripeInvoice = null;
+    if (userInfo) {
+      try {
+        const stripeCustomer = await getOrCreateStripeCustomer(userInfo);
+        if (stripeCustomer) {
+          stripeInvoice = await createStripeInvoice(
+            stripeCustomer.id,
+            billingAmount,
+            `Service Mystral - ${billingConfig.label}`,
+            {
+              user_id: String(toNumber(userId)),
+              billing_cycle: billingCycle,
+              order_uuid: orderUuid,
+            }
+          );
+        }
+      } catch (stripeErr) {
+        console.error('Stripe invoice creation failed:', stripeErr.message);
+      }
+    }
+
+    // Use Stripe invoice number if available, otherwise generate our own
+    const finalInvoiceNumber = stripeInvoice?.number || invoiceNumber;
+
     try {
       await query(
-        `INSERT INTO invoices (uuid, invoice_number, user_id, subtotal, tax_amount, tax_rate, discount_amount, total, amount_paid, status, issue_date, due_date, paid_at, billing_address, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', CURDATE(), CURDATE(), NOW(), ?, ?)`,
+        `INSERT INTO invoices (uuid, invoice_number, user_id, subtotal, tax_amount, tax_rate, discount_amount, total, amount_paid, status, issue_date, due_date, paid_at, billing_address, notes, stripe_invoice_id, stripe_invoice_pdf)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', CURDATE(), CURDATE(), NOW(), ?, ?, ?, ?)`,
         [
           invoiceUuid,
-          invoiceNumber,
+          finalInvoiceNumber,
           userId,
           billingAmount,        // subtotal
           0,                    // tax_amount
@@ -226,12 +341,35 @@ router.post('/confirm', authenticate, requireStripe, async (req, res) => {
           billingAmount,        // total
           billingAmount,        // amount_paid (fully paid)
           JSON.stringify(billingAddress),
-          `Paiement ${billingConfig.label}`
+          `Paiement ${billingConfig.label}`,
+          stripeInvoice?.id || null,
+          stripeInvoice?.pdf_url || null
         ]
       );
-      console.log('Invoice created:', invoiceNumber);
+      console.log('Invoice created:', finalInvoiceNumber, stripeInvoice ? '(with Stripe PDF)' : '(local only)');
     } catch (dbErr) {
       console.log('Note: Could not create invoice:', dbErr.message);
+      // Try without Stripe columns if they don't exist
+      try {
+        await query(
+          `INSERT INTO invoices (uuid, invoice_number, user_id, subtotal, tax_amount, tax_rate, discount_amount, total, amount_paid, status, issue_date, due_date, paid_at, billing_address, notes)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'paid', CURDATE(), CURDATE(), NOW(), ?, ?)`,
+          [
+            invoiceUuid,
+            finalInvoiceNumber,
+            userId,
+            billingAmount,
+            0, 0, 0,
+            billingAmount,
+            billingAmount,
+            JSON.stringify(billingAddress),
+            `Paiement ${billingConfig.label}`
+          ]
+        );
+        console.log('Invoice created (without Stripe columns):', finalInvoiceNumber);
+      } catch (dbErr2) {
+        console.log('Note: Could not create invoice at all:', dbErr2.message);
+      }
     }
 
     // Calculate next due date for email
@@ -263,7 +401,8 @@ router.post('/confirm', authenticate, requireStripe, async (req, res) => {
       success: true,
       message: 'Paiement confirme avec succes',
       serviceUuid: serviceUuid,
-      invoiceNumber: invoiceNumber,
+      invoiceNumber: finalInvoiceNumber,
+      invoicePdfUrl: stripeInvoice?.pdf_url || null,
     });
   } catch (err) {
     console.error('Confirm payment error:', err);
@@ -359,7 +498,8 @@ router.get('/invoices', authenticate, async (req, res) => {
 
     const invoices = await query(
       `SELECT uuid, invoice_number, subtotal, tax_amount, total, status,
-              paid_at, due_date, issue_date, notes, created_at
+              paid_at, due_date, issue_date, notes, created_at,
+              stripe_invoice_id, stripe_invoice_pdf
        FROM invoices
        WHERE user_id = ?
        ORDER BY created_at DESC
@@ -386,6 +526,7 @@ router.get('/invoices', authenticate, async (req, res) => {
         issue_date: inv.issue_date,
         description: inv.notes || '',
         created_at: inv.created_at,
+        pdf_url: inv.stripe_invoice_pdf || null,
       })),
       total: toNumber(countResult[0].total),
     });
@@ -408,7 +549,7 @@ router.get('/invoices/:uuid', authenticate, async (req, res) => {
       `SELECT i.uuid, i.invoice_number, i.subtotal, i.tax_amount, i.tax_rate,
               i.discount_amount, i.total, i.amount_paid, i.status,
               i.issue_date, i.due_date, i.paid_at, i.billing_address, i.notes,
-              i.created_at
+              i.created_at, i.stripe_invoice_id, i.stripe_invoice_pdf
        FROM invoices i
        WHERE i.uuid = ? AND i.user_id = ?`,
       [uuid, userId]
@@ -451,6 +592,7 @@ router.get('/invoices/:uuid', authenticate, async (req, res) => {
         description: invoice.notes || '',
         created_at: invoice.created_at,
         customer: customer,
+        pdf_url: invoice.stripe_invoice_pdf || null,
       },
     });
   } catch (err) {

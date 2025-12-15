@@ -613,13 +613,19 @@ export default function Account() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                toast({
-                                  title: 'Téléchargement',
-                                  description: `Téléchargement de la facture ${invoice.invoice_number}...`,
-                                });
+                                if (invoice.pdf_url) {
+                                  window.open(invoice.pdf_url, '_blank');
+                                } else {
+                                  toast({
+                                    title: 'PDF non disponible',
+                                    description: 'Le PDF de cette facture n\'est pas encore disponible.',
+                                    variant: 'destructive',
+                                  });
+                                }
                               }}
+                              title={invoice.pdf_url ? 'Télécharger le PDF' : 'PDF non disponible'}
                             >
-                              <Download className="h-4 w-4" />
+                              <Download className={`h-4 w-4 ${!invoice.pdf_url ? 'opacity-50' : ''}`} />
                             </Button>
                           </div>
                         </div>
