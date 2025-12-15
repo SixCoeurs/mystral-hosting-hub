@@ -244,12 +244,12 @@ router.post('/register', async (req, res) => {
     const verificationToken = generateSecureToken();
     try {
       await query(
-        `INSERT INTO user_tokens (user_id, token_type, token, expires_at)
-         VALUES (?, 'email_verification', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
+        `INSERT INTO user_tokens (user_id, type, token_hash, expires_at)
+         VALUES (?, 'email_verify', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
         [result, verificationToken]
       );
     } catch (tokenErr) {
-      console.log('Note: user_tokens table may not exist, skipping verification token:', tokenErr.message);
+      console.log('Note: user_tokens table error:', tokenErr.message);
     }
 
     // Fetch created user
@@ -356,7 +356,7 @@ router.post('/request-password-reset', async (req, res) => {
       // Delete any existing reset tokens for this user
       try {
         await query(
-          `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'password_reset'`,
+          `DELETE FROM user_tokens WHERE user_id = ? AND type = 'password_reset'`,
           [user.id]
         );
       } catch (delErr) {
@@ -366,7 +366,7 @@ router.post('/request-password-reset', async (req, res) => {
       // Store new reset token (expires in 1 hour)
       try {
         await query(
-          `INSERT INTO user_tokens (user_id, token_type, token, expires_at)
+          `INSERT INTO user_tokens (user_id, type, token_hash, expires_at)
            VALUES (?, 'password_reset', ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))`,
           [user.id, resetToken]
         );
@@ -419,7 +419,7 @@ router.post('/reset-password', async (req, res) => {
       `SELECT ut.user_id, u.email, u.first_name, u.last_name
        FROM user_tokens ut
        JOIN users u ON ut.user_id = u.id
-       WHERE ut.token = ? AND ut.token_type = 'password_reset' AND ut.expires_at > NOW()`,
+       WHERE ut.token_hash = ? AND ut.type = 'password_reset' AND ut.expires_at > NOW() AND ut.used_at IS NULL`,
       [token]
     );
 
@@ -446,9 +446,9 @@ router.post('/reset-password', async (req, res) => {
       [passwordHash, user_id]
     );
 
-    // Delete used token
+    // Mark token as used
     await query(
-      `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'password_reset'`,
+      `UPDATE user_tokens SET used_at = NOW() WHERE user_id = ? AND type = 'password_reset'`,
       [user_id]
     );
 
@@ -492,7 +492,7 @@ router.post('/verify-email', async (req, res) => {
       `SELECT ut.user_id, u.email, u.first_name, u.last_name, u.email_verified
        FROM user_tokens ut
        JOIN users u ON ut.user_id = u.id
-       WHERE ut.token = ? AND ut.token_type = 'email_verification' AND ut.expires_at > NOW()`,
+       WHERE ut.token_hash = ? AND ut.type = 'email_verify' AND ut.expires_at > NOW() AND ut.used_at IS NULL`,
       [token]
     );
 
@@ -518,9 +518,9 @@ router.post('/verify-email', async (req, res) => {
       [user_id]
     );
 
-    // Delete used token
+    // Mark token as used
     await query(
-      `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'email_verification'`,
+      `UPDATE user_tokens SET used_at = NOW() WHERE user_id = ? AND type = 'email_verify'`,
       [user_id]
     );
 
@@ -560,7 +560,7 @@ router.post('/resend-verification', authenticate, async (req, res) => {
     // Delete any existing verification tokens
     try {
       await query(
-        `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'email_verification'`,
+        `DELETE FROM user_tokens WHERE user_id = ? AND type = 'email_verify'`,
         [user.id]
       );
     } catch (delErr) {
@@ -571,8 +571,8 @@ router.post('/resend-verification', authenticate, async (req, res) => {
     const verificationToken = generateSecureToken();
     try {
       await query(
-        `INSERT INTO user_tokens (user_id, token_type, token, expires_at)
-         VALUES (?, 'email_verification', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
+        `INSERT INTO user_tokens (user_id, type, token_hash, expires_at)
+         VALUES (?, 'email_verify', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
         [user.id, verificationToken]
       );
     } catch (tokenErr) {

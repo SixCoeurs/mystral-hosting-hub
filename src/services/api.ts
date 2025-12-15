@@ -338,6 +338,55 @@ export const api = {
     }
   },
 
+  async verifyEmail(token: string): Promise<AuthResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        message: result.message || (result.success ? 'Email verifie avec succes !' : 'Token invalide ou expire'),
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Erreur de connexion au serveur',
+      };
+    }
+  },
+
+  async resendVerificationEmail(): Promise<AuthResponse> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifie' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        message: result.message || (result.success ? 'Email de verification envoye' : 'Erreur'),
+      };
+    } catch {
+      return {
+        success: false,
+        message: 'Erreur de connexion au serveur',
+      };
+    }
+  },
+
   // Services
   async getServices(): Promise<{ success: boolean; services: Service[] }> {
     const session = getStoredSession();

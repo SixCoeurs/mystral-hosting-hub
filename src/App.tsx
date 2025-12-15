@@ -22,6 +22,7 @@ import DayZPage from "./pages/games/DayZ";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
 import Account from "./pages/Account";
 import ServiceDetail from "./pages/ServiceDetail";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/checkout" element={<Checkout />} />
