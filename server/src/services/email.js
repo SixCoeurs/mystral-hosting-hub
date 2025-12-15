@@ -6,36 +6,42 @@ let transporter = null;
 function initTransporter() {
   if (transporter) return transporter;
 
-  // Check if SMTP is configured
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    console.warn('SMTP not configured - email features disabled');
+  // Check if SMTP host is configured
+  if (!process.env.SMTP_HOST) {
+    console.warn('SMTP_HOST not configured - email features disabled');
     return null;
   }
 
-  transporter = nodemailer.createTransport({
+  // Build transport config
+  const transportConfig = {
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT) || 587,
+    port: parseInt(process.env.SMTP_PORT) || 25,
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
+  };
+
+  // Add auth only if credentials are provided (not needed for local Postfix)
+  if (process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+    transportConfig.auth = {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASSWORD,
-    },
-    // DKIM signing (if configured)
-    ...(process.env.DKIM_DOMAIN && process.env.DKIM_PRIVATE_KEY && {
-      dkim: {
-        domainName: process.env.DKIM_DOMAIN,
-        keySelector: process.env.DKIM_SELECTOR || 'default',
-        privateKey: process.env.DKIM_PRIVATE_KEY,
-      },
-    }),
-  });
+    };
+  }
+
+  // For localhost, disable TLS verification
+  if (process.env.SMTP_HOST === 'localhost' || process.env.SMTP_HOST === '127.0.0.1') {
+    transportConfig.tls = {
+      rejectUnauthorized: false,
+    };
+  }
+
+  transporter = nodemailer.createTransport(transportConfig);
 
   // Verify connection
   transporter.verify((error, success) => {
     if (error) {
       console.error('SMTP connection error:', error);
     } else {
-      console.log('SMTP server ready for messages');
+      console.log('SMTP server ready for messages (DKIM handled by OpenDKIM milter)');
     }
   });
 
