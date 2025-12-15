@@ -81,21 +81,22 @@ async function createStripeInvoice(customerId, amount, description, metadata = {
   if (!stripe || !customerId) return null;
 
   try {
-    // Create an invoice item
-    await stripe.invoiceItems.create({
-      customer: customerId,
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: 'eur',
-      description: description,
-    });
-
-    // Create the invoice (don't auto-advance, we'll finalize manually)
+    // Create the invoice first (in draft state)
     const invoice = await stripe.invoices.create({
       customer: customerId,
       auto_advance: false,
       collection_method: 'send_invoice',
       days_until_due: 0,
       metadata: metadata,
+    });
+
+    // Add the invoice item to this specific invoice
+    await stripe.invoiceItems.create({
+      customer: customerId,
+      invoice: invoice.id, // Attach to this specific invoice
+      amount: Math.round(amount * 100), // Convert to cents
+      currency: 'eur',
+      description: description,
     });
 
     // Finalize the invoice to generate PDF
