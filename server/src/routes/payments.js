@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../config/database.js';
 import { authenticate } from '../middleware/auth.js';
+import { sendPurchaseConfirmationEmail } from '../services/email.js';
 
 const router = express.Router();
 
@@ -233,9 +234,34 @@ router.post('/confirm', authenticate, requireStripe, async (req, res) => {
       console.log('Note: Could not create invoice:', dbErr.message);
     }
 
+    // Calculate next due date for email
+    const nextDueDate = new Date();
+    nextDueDate.setMonth(nextDueDate.getMonth() + billingConfig.months);
+
+    // Send purchase confirmation email (async, don't wait)
+    sendPurchaseConfirmationEmail(
+      {
+        email: billingAddress.email || req.user.email,
+        first_name: billingAddress.first_name || req.user.first_name,
+        last_name: billingAddress.last_name || req.user.last_name,
+      },
+      {
+        description: `Service Mystral - ${billingConfig.label}`,
+        amount: billingAmount,
+        discount: billingConfig.discount > 0 ? (billingAmount * billingConfig.discount / (100 - billingConfig.discount)) : 0,
+        total: billingAmount,
+        billingCycle: billingConfig.label,
+        billingLabel: billingConfig.label,
+        invoiceNumber: invoiceNumber,
+        nextDueDate: nextDueDate.toLocaleDateString('fr-FR'),
+      }
+    ).catch(err => {
+      console.error('Failed to send purchase confirmation email:', err);
+    });
+
     res.json({
       success: true,
-      message: 'Paiement confirmé avec succès',
+      message: 'Paiement confirme avec succes',
       serviceUuid: serviceUuid,
       invoiceNumber: invoiceNumber,
     });

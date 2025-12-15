@@ -7,6 +7,7 @@ import userRoutes from './routes/user.js';
 import servicesRoutes from './routes/services.js';
 import productsRoutes from './routes/products.js';
 import paymentsRoutes from './routes/payments.js';
+import { sendTestEmail } from './services/email.js';
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +34,21 @@ app.use((req, res, next) => {
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Email test endpoint (admin only - should be protected in production)
+app.post('/api/test-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email requis' });
+    }
+    const result = await sendTestEmail(email);
+    res.json(result);
+  } catch (err) {
+    console.error('Test email error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // API Routes

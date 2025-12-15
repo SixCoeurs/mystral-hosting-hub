@@ -1,10 +1,23 @@
 import express from 'express';
 import argon2 from 'argon2';
+import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { query, transaction } from '../config/database.js';
 import { generateToken, authenticate } from '../middleware/auth.js';
+import {
+  sendVerificationEmail,
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail,
+  sendNewLoginAlertEmail,
+} from '../services/email.js';
 
 const router = express.Router();
+
+// Generate secure random token
+function generateSecureToken(length = 32) {
+  return crypto.randomBytes(length).toString('hex');
+}
 
 // Helper to convert BigInt to Number (MariaDB returns BigInt for BIGINT columns)
 function toNumber(val) {
@@ -227,6 +240,18 @@ router.post('/register', async (req, res) => {
 
     const result = userId;
 
+    // Generate email verification token
+    const verificationToken = generateSecureToken();
+    try {
+      await query(
+        `INSERT INTO user_tokens (user_id, token_type, token, expires_at)
+         VALUES (?, 'email_verification', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
+        [result, verificationToken]
+      );
+    } catch (tokenErr) {
+      console.log('Note: user_tokens table may not exist, skipping verification token:', tokenErr.message);
+    }
+
     // Fetch created user
     const users = await query(
       `SELECT id, uuid, email, email_verified, first_name, last_name,
@@ -245,10 +270,16 @@ router.post('/register', async (req, res) => {
     // Log registration
     await logSecurityEvent(user.id, 'register', ip, userAgent, null);
 
+    // Send verification email (async, don't wait)
+    sendVerificationEmail(user, verificationToken).catch(err => {
+      console.error('Failed to send verification email:', err);
+    });
+
     res.status(201).json({
       success: true,
       user: formatUser(user),
       token,
+      message: 'Inscription reussie ! Un email de verification a ete envoye.',
     });
   } catch (err) {
     console.error('Registration error:', err.message);
@@ -313,27 +344,254 @@ router.post('/request-password-reset', async (req, res) => {
     }
 
     // Always return success to prevent email enumeration
-    // In production, send actual email if user exists
-
     const users = await query(
-      'SELECT id FROM users WHERE email = ?',
+      'SELECT id, uuid, email, first_name, last_name FROM users WHERE email = ?',
       [email.toLowerCase().trim()]
     );
 
     if (users.length > 0) {
-      // TODO: Generate reset token and send email
-      // const resetToken = generateSecureToken();
-      // await query('INSERT INTO user_tokens ...');
-      // await sendResetEmail(email, resetToken);
-      console.log(`Password reset requested for: ${email}`);
+      const user = users[0];
+      const resetToken = generateSecureToken();
+
+      // Delete any existing reset tokens for this user
+      try {
+        await query(
+          `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'password_reset'`,
+          [user.id]
+        );
+      } catch (delErr) {
+        console.log('Note: Could not delete old reset tokens:', delErr.message);
+      }
+
+      // Store new reset token (expires in 1 hour)
+      try {
+        await query(
+          `INSERT INTO user_tokens (user_id, token_type, token, expires_at)
+           VALUES (?, 'password_reset', ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))`,
+          [user.id, resetToken]
+        );
+
+        // Send reset email
+        await sendPasswordResetEmail(user, resetToken);
+        console.log(`Password reset email sent to: ${email}`);
+      } catch (tokenErr) {
+        console.error('Error creating reset token:', tokenErr.message);
+      }
     }
 
     res.json({
       success: true,
-      message: 'Si cette adresse existe, un email de réinitialisation a été envoyé',
+      message: 'Si cette adresse existe, un email de reinitialisation a ete envoye',
     });
   } catch (err) {
     console.error('Password reset request error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+    });
+  }
+});
+
+// POST /auth/reset-password - Reset password with token
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    const ip = req.ip || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'] || null;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token et mot de passe requis',
+      });
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le mot de passe doit contenir au moins 8 caracteres',
+      });
+    }
+
+    // Find valid token
+    const tokens = await query(
+      `SELECT ut.user_id, u.email, u.first_name, u.last_name
+       FROM user_tokens ut
+       JOIN users u ON ut.user_id = u.id
+       WHERE ut.token = ? AND ut.token_type = 'password_reset' AND ut.expires_at > NOW()`,
+      [token]
+    );
+
+    if (tokens.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token invalide ou expire',
+      });
+    }
+
+    const { user_id, email, first_name, last_name } = tokens[0];
+
+    // Hash new password
+    const passwordHash = await argon2.hash(password, {
+      type: argon2.argon2id,
+      memoryCost: 65536,
+      timeCost: 3,
+      parallelism: 4,
+    });
+
+    // Update password
+    await query(
+      'UPDATE users SET password_hash = ? WHERE id = ?',
+      [passwordHash, user_id]
+    );
+
+    // Delete used token
+    await query(
+      `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'password_reset'`,
+      [user_id]
+    );
+
+    // Log the event
+    await logSecurityEvent(user_id, 'password_reset', ip, userAgent, null);
+
+    // Send confirmation email
+    sendPasswordChangedEmail({ email, first_name, last_name }).catch(err => {
+      console.error('Failed to send password changed email:', err);
+    });
+
+    res.json({
+      success: true,
+      message: 'Mot de passe reinitialise avec succes',
+    });
+  } catch (err) {
+    console.error('Password reset error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+    });
+  }
+});
+
+// POST /auth/verify-email - Verify email with token
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+    const ip = req.ip || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'] || null;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token requis',
+      });
+    }
+
+    // Find valid token
+    const tokens = await query(
+      `SELECT ut.user_id, u.email, u.first_name, u.last_name, u.email_verified
+       FROM user_tokens ut
+       JOIN users u ON ut.user_id = u.id
+       WHERE ut.token = ? AND ut.token_type = 'email_verification' AND ut.expires_at > NOW()`,
+      [token]
+    );
+
+    if (tokens.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token invalide ou expire',
+      });
+    }
+
+    const { user_id, email, first_name, last_name, email_verified } = tokens[0];
+
+    if (email_verified) {
+      return res.json({
+        success: true,
+        message: 'Email deja verifie',
+      });
+    }
+
+    // Mark email as verified
+    await query(
+      'UPDATE users SET email_verified = 1 WHERE id = ?',
+      [user_id]
+    );
+
+    // Delete used token
+    await query(
+      `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'email_verification'`,
+      [user_id]
+    );
+
+    // Log the event
+    await logSecurityEvent(user_id, 'email_verified', ip, userAgent, null);
+
+    // Send welcome email
+    sendWelcomeEmail({ email, first_name, last_name }).catch(err => {
+      console.error('Failed to send welcome email:', err);
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verifie avec succes !',
+    });
+  } catch (err) {
+    console.error('Email verification error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+    });
+  }
+});
+
+// POST /auth/resend-verification - Resend verification email
+router.post('/resend-verification', authenticate, async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (user.email_verified) {
+      return res.json({
+        success: true,
+        message: 'Email deja verifie',
+      });
+    }
+
+    // Delete any existing verification tokens
+    try {
+      await query(
+        `DELETE FROM user_tokens WHERE user_id = ? AND token_type = 'email_verification'`,
+        [user.id]
+      );
+    } catch (delErr) {
+      console.log('Note: Could not delete old verification tokens:', delErr.message);
+    }
+
+    // Generate new verification token
+    const verificationToken = generateSecureToken();
+    try {
+      await query(
+        `INSERT INTO user_tokens (user_id, token_type, token, expires_at)
+         VALUES (?, 'email_verification', ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
+        [user.id, verificationToken]
+      );
+    } catch (tokenErr) {
+      console.error('Error creating verification token:', tokenErr.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la creation du token',
+      });
+    }
+
+    // Send verification email
+    await sendVerificationEmail(user, verificationToken);
+
+    res.json({
+      success: true,
+      message: 'Email de verification envoye',
+    });
+  } catch (err) {
+    console.error('Resend verification error:', err);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur',
