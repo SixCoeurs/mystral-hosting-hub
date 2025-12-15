@@ -32,6 +32,7 @@ export interface AuthResponse {
   message?: string;
   user?: User;
   token?: string;
+  requires_2fa?: boolean;
 }
 
 export interface RegisterData {
@@ -456,41 +457,146 @@ export const api = {
   },
 
   // 2FA
-  async enable2FA(): Promise<{ success: boolean; secret?: string; qr_code?: string }> {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return {
-      success: true,
-      secret: 'MOCK2FASECRET123',
-      qr_code: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=otpauth://totp/Mystral:demo@mystral.fr?secret=MOCK2FASECRET123&issuer=Mystral',
-    };
+  async setup2FA(): Promise<{ success: boolean; secret?: string; qr_code?: string; message?: string }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/totp/setup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        secret: result.secret,
+        qr_code: result.qr_code,
+        message: result.message,
+      };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
   },
 
-  async verify2FA(code: string): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    if (code.length !== 6) {
-      return { success: false, message: 'Code invalide' };
-    }
-    
+  async enable2FA(code: string): Promise<{ success: boolean; message?: string; recovery_codes?: string[] }> {
     const session = getStoredSession();
-    if (session) {
-      const updatedUser = { ...session.user, totp_enabled: true };
-      storeSession(updatedUser, session.token);
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
     }
-    
-    return { success: true, message: '2FA activé avec succès' };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/totp/enable`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update local session
+        const updatedUser = { ...session.user, totp_enabled: true };
+        storeSession(updatedUser, session.token);
+      }
+
+      return {
+        success: result.success,
+        message: result.message,
+        recovery_codes: result.recovery_codes,
+      };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
   },
 
-  async disable2FA(code: string): Promise<AuthResponse> {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
+  async disable2FA(code: string, password: string): Promise<AuthResponse> {
     const session = getStoredSession();
-    if (session) {
-      const updatedUser = { ...session.user, totp_enabled: false };
-      storeSession(updatedUser, session.token);
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
     }
 
-    return { success: true, message: '2FA désactivé' };
+    try {
+      const response = await fetch(`${API_BASE_URL}/totp/disable`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ code, password }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Update local session
+        const updatedUser = { ...session.user, totp_enabled: false };
+        storeSession(updatedUser, session.token);
+      }
+
+      return { success: result.success, message: result.message };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
+  },
+
+  async get2FAStatus(): Promise<{ success: boolean; enabled?: boolean; recovery_codes_remaining?: number }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/totp/status`, {
+        headers: {
+          'Authorization': `Bearer ${session.token}`,
+        },
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        enabled: result.enabled,
+        recovery_codes_remaining: result.recovery_codes_remaining,
+      };
+    } catch {
+      return { success: false };
+    }
+  },
+
+  async regenerateRecoveryCodes(code: string, password: string): Promise<{ success: boolean; recovery_codes?: string[]; message?: string }> {
+    const session = getStoredSession();
+    if (!session?.token) {
+      return { success: false, message: 'Non authentifié' };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/totp/regenerate-codes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({ code, password }),
+      });
+
+      const result = await response.json();
+      return {
+        success: result.success,
+        recovery_codes: result.recovery_codes,
+        message: result.message,
+      };
+    } catch {
+      return { success: false, message: 'Erreur de connexion au serveur' };
+    }
   },
 
   // Payments

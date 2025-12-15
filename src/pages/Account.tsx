@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import api, { Invoice } from '@/services/api';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { TwoFactorSetup } from '@/components/TwoFactorSetup';
 
 export default function Account() {
   const { user, isAuthenticated, isLoading: authLoading, updateProfile, changePassword, logout } = useAuth();
@@ -66,6 +67,11 @@ export default function Account() {
   const [invoicesLoading, setInvoicesLoading] = useState(false);
   const [invoicesTotal, setInvoicesTotal] = useState(0);
 
+  // 2FA state
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFAMode, setTwoFAMode] = useState<'enable' | 'disable'>('enable');
+  const [recoveryCodesRemaining, setRecoveryCodesRemaining] = useState<number | null>(null);
+
   // Fetch invoices
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -85,6 +91,27 @@ export default function Account() {
     };
     fetchInvoices();
   }, [isAuthenticated]);
+
+  // Fetch 2FA status
+  useEffect(() => {
+    const fetch2FAStatus = async () => {
+      if (!isAuthenticated || !user?.totp_enabled) return;
+      try {
+        const result = await api.get2FAStatus();
+        if (result.success) {
+          setRecoveryCodesRemaining(result.recovery_codes_remaining ?? null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch 2FA status:', error);
+      }
+    };
+    fetch2FAStatus();
+  }, [isAuthenticated, user?.totp_enabled]);
+
+  const handle2FAClick = () => {
+    setTwoFAMode(user?.totp_enabled ? 'disable' : 'enable');
+    setShow2FAModal(true);
+  };
 
   // Redirect if not authenticated
   if (!authLoading && !isAuthenticated) {
@@ -509,8 +536,16 @@ export default function Account() {
                             ? 'La 2FA est activée sur votre compte'
                             : 'Ajoutez une couche de sécurité supplémentaire'}
                         </p>
+                        {user?.totp_enabled && recoveryCodesRemaining !== null && (
+                          <p className={`text-sm mt-2 ${recoveryCodesRemaining <= 2 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                            {recoveryCodesRemaining} code{recoveryCodesRemaining > 1 ? 's' : ''} de récupération restant{recoveryCodesRemaining > 1 ? 's' : ''}
+                          </p>
+                        )}
                       </div>
-                      <Button variant={user?.totp_enabled ? 'outline' : 'default'}>
+                      <Button
+                        variant={user?.totp_enabled ? 'outline' : 'default'}
+                        onClick={handle2FAClick}
+                      >
                         {user?.totp_enabled ? 'Désactiver' : 'Activer'}
                       </Button>
                     </div>
@@ -652,6 +687,13 @@ export default function Account() {
       </main>
 
       <Footer />
+
+      {/* 2FA Setup Modal */}
+      <TwoFactorSetup
+        isOpen={show2FAModal}
+        onClose={() => setShow2FAModal(false)}
+        mode={twoFAMode}
+      />
     </div>
   );
 }

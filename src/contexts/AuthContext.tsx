@@ -5,7 +5,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (data: LoginData) => Promise<{ success: boolean; message?: string }>;
+  login: (data: LoginData) => Promise<{ success: boolean; message?: string; requires_2fa?: boolean }>;
   register: (data: RegisterData) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   updateProfile: (data: UpdateProfileData) => Promise<{ success: boolean; message?: string }>;
@@ -46,7 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (response.success && response.user) {
       setUser(response.user);
     }
-    return { success: response.success, message: response.message };
+    return {
+      success: response.success,
+      message: response.message,
+      requires_2fa: response.requires_2fa,
+    };
   };
 
   const register = async (data: RegisterData) => {

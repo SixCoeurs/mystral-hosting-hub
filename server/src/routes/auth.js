@@ -64,7 +64,7 @@ async function logSecurityEvent(userId, eventType, ip, userAgent, details = null
 // POST /auth/login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, totp_code } = req.body;
     const ip = req.ip || req.connection.remoteAddress;
     const userAgent = req.headers['user-agent'] || null;
 
@@ -80,7 +80,7 @@ router.post('/login', async (req, res) => {
     const users = await query(
       `SELECT id, uuid, email, email_verified, password_hash, first_name, last_name,
               phone, company_name, address_line1, address_line2, city,
-              postal_code, country_code, role, status, totp_enabled,
+              postal_code, country_code, role, status, totp_enabled, totp_secret,
               created_at, last_login_at
        FROM users
        WHERE email = ?`,
@@ -128,6 +128,54 @@ router.post('/login', async (req, res) => {
         success: false,
         message: 'Identifiants incorrects',
       });
+    }
+
+    // Check if 2FA is enabled
+    if (user.totp_enabled && user.totp_secret) {
+      // If no TOTP code provided, ask for it
+      if (!totp_code) {
+        return res.status(200).json({
+          success: true,
+          requires_2fa: true,
+          message: 'Veuillez entrer votre code d\'authentification',
+        });
+      }
+
+      // Verify TOTP code
+      const { authenticator } = await import('otplib');
+      const isValid = authenticator.verify({ token: totp_code, secret: user.totp_secret });
+
+      if (!isValid) {
+        // Try recovery codes
+        const recoveryCodes = await query(
+          `SELECT id, code_hash FROM recovery_codes WHERE user_id = ? AND used_at IS NULL`,
+          [user.id]
+        );
+
+        let recoveryCodeUsed = false;
+        const cleanCode = totp_code.replace('-', '').toUpperCase();
+
+        for (const rc of recoveryCodes) {
+          try {
+            if (await argon2.verify(rc.code_hash, cleanCode)) {
+              await query(`UPDATE recovery_codes SET used_at = NOW() WHERE id = ?`, [rc.id]);
+              recoveryCodeUsed = true;
+              await logSecurityEvent(user.id, 'recovery_code_used', ip, userAgent, null);
+              break;
+            }
+          } catch {
+            // Continue checking
+          }
+        }
+
+        if (!recoveryCodeUsed) {
+          await logSecurityEvent(user.id, 'login_failed', ip, userAgent, { reason: 'invalid_totp' });
+          return res.status(401).json({
+            success: false,
+            message: 'Code d\'authentification invalide',
+          });
+        }
+      }
     }
 
     // Update last login info

@@ -7,6 +7,7 @@ import userRoutes from './routes/user.js';
 import servicesRoutes from './routes/services.js';
 import productsRoutes from './routes/products.js';
 import paymentsRoutes from './routes/payments.js';
+import totpRoutes from './routes/totp.js';
 import { sendTestEmail } from './services/email.js';
 
 // Load environment variables
@@ -57,6 +58,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/totp', totpRoutes);
 
 // 404 handler
 app.use('/api/*', (req, res) => {
