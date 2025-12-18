@@ -162,19 +162,43 @@ export function TwoFactorSetup({ isOpen, onClose, mode }: TwoFactorSetupProps) {
     }
   };
 
-  const copyToClipboard = (text: string, type: 'secret' | 'codes') => {
-    navigator.clipboard.writeText(text);
-    if (type === 'secret') {
-      setCopiedSecret(true);
-      setTimeout(() => setCopiedSecret(false), 2000);
-    } else {
-      setCopiedCodes(true);
-      setTimeout(() => setCopiedCodes(false), 2000);
+  const copyToClipboard = async (text: string, type: 'secret' | 'codes') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (type === 'secret') {
+        setCopiedSecret(true);
+        setTimeout(() => setCopiedSecret(false), 2000);
+      } else {
+        setCopiedCodes(true);
+        setTimeout(() => setCopiedCodes(false), 2000);
+      }
+      toast({
+        title: 'Copié',
+        description: type === 'secret' ? 'Clé secrète copiée' : 'Codes de récupération copiés',
+      });
+    } catch (err) {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      if (type === 'secret') {
+        setCopiedSecret(true);
+        setTimeout(() => setCopiedSecret(false), 2000);
+      } else {
+        setCopiedCodes(true);
+        setTimeout(() => setCopiedCodes(false), 2000);
+      }
+      toast({
+        title: 'Copié',
+        description: type === 'secret' ? 'Clé secrète copiée' : 'Codes de récupération copiés',
+      });
     }
-    toast({
-      title: 'Copié',
-      description: type === 'secret' ? 'Clé secrète copiée' : 'Codes de récupération copiés',
-    });
   };
 
   const handleClose = () => {
